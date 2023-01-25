@@ -1,1 +1,3 @@
 # Random repo for python junk
+
+Scripts from class, testing stuff out, etc...
