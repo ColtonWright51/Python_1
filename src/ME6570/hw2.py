@@ -44,7 +44,12 @@ def main():
     funcs2 = [-3*x, 4*x+x**2, 2*x**2]
     funcs3 = [-3*x, x**3, 2*x**2]
 
-    wronskian = get_wronskian(funcs1, x)
+    wronskian1 = get_wronskian(funcs1, x)
+
+    # Sympy actually has an included wronskian() function that is similar to
+    # what i've done. But their code is much smarter/cleaner than mine
+    wb = wronskian(funcs1, x) # Built in sympy func
+    pprint(wb)
 
 if __name__ == '__main__':
     main()
