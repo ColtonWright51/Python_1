@@ -19,7 +19,7 @@ yxx = y(x,t).diff(x).diff(x)
 yt = y(x,t).diff(t)
 ytt = y(x,t).diff(t).diff(t)
 
-wave_equation = ytt-a**2*yxx
+wave_equation = yt-a**2*yx
 pprint(wave_equation)
 pprint(pdsolve(wave_equation))
 # pprint(ode.classify_ode(wave_equation))
