@@ -1,11 +1,8 @@
 """
 hw2.py
 Created on 1/24/2023 by Colton Wright
-
 Solution to John Cotton's HW2 P2 in ME6570
-
 """
-
 
 from sympy import *
 
@@ -26,16 +23,15 @@ def get_wronskian(functions, symbol, to_print=True, to_plot=True):
 
         # Append entire row of derivatives to W matrix
         wronskian_matrix = Matrix([wronskian_matrix,j_matrix])
-
         j_matrix = Matrix() # Clear for next j loop
 
     wronskian = wronskian_matrix.det()
+
     if to_print:
         print("\nSymbolic Wronskian matrix:\n")
         pprint(wronskian_matrix)
         print("\nSymbolic Wronskian:\n")
         pprint(wronskian)
-
     if to_plot:
         plot(wronskian, xlim=(0,2))
 
