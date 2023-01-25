@@ -1,7 +1,16 @@
+"""
+hw2.py
+Created on 1/24/2023 by Colton Wright
+
+Solution to John Cotton's HW2 P2 in ME6570
+
+"""
+
+
 from sympy import *
 
 def get_wronskian(functions, symbol, to_print=True, to_plot=True):
-    
+
     # If Wronskian is nonzero ANYWHERE on the domain, the functions are linearly
     # independent. Zero everywhere, dependent.
 
