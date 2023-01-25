@@ -1,10 +1,9 @@
-import numpy as np
-import matplotlib.pyplot as plt
 from sympy import *
 
-
-# Input your phi funcs here...
-def get_wronskian(functions):
+def get_wronskian(functions, symbol, to_print=True, to_plot=True):
+    
+    # If Wronskian is nonzero ANYWHERE on the domain, the functions are linearly
+    # independent. Zero everywhere, dependent.
 
     wronskian_matrix = Matrix()
     j_matrix = Matrix()
@@ -12,7 +11,7 @@ def get_wronskian(functions):
 
         for j in range(len(functions)): # Calculate the derivatives in row i
             # Take the ith derivative of each element & save
-            j_matrix = Matrix([j_matrix, diff(functions[j], x, i)])
+            j_matrix = Matrix([j_matrix, diff(functions[j], symbol, i)])
 
         j_matrix = j_matrix.transpose()
 
@@ -21,33 +20,26 @@ def get_wronskian(functions):
 
         j_matrix = Matrix() # Clear for next j loop
 
-    print("\nSymbolic Wronskian matrix:\n")
-    pprint(wronskian_matrix)
+    wronskian = wronskian_matrix.det()
+    if to_print:
+        print("\nSymbolic Wronskian matrix:\n")
+        pprint(wronskian_matrix)
+        print("\nSymbolic Wronskian:\n")
+        pprint(wronskian)
 
-    return(wronskian_matrix.det())
+    if to_plot:
+        plot(wronskian, xlim=(0,2))
 
+    return(wronskian)
 
+def main():
 
+    x = Symbol('x')
+    funcs1 = [sin(x), sin(2*x), cos(x), cos(2*x)]
+    funcs2 = [-3*x, 4*x+x**2, 2*x**2]
+    funcs3 = [-3*x, x**3, 2*x**2]
 
+    wronskian = get_wronskian(funcs1, x)
 
-
-x = Symbol('x')
-
-funcs1 = [sin(x), sin(2*x), cos(x), cos(2*x)]
-
-funcs2 = [-3*x, 4*x+x**2, 2*x**2]
-
-funcs3 = [-3*x, x**3, 2*x**2]
-
-
-wronskian = get_wronskian(funcs3)
-print("\nSymbolic Wronskian:\n")
-pprint(wronskian)
-
-# If Wronskian is nonzero ANYWHERE on the domain, the functions are linearly
-# independent.
-plot(wronskian, xlim=(0,2))
-
-
-
-
+if __name__ == '__main__':
+    main()
