@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import modules.help1 as h1
+import src.modules.help1 as h1
 
 dt = 0.01
 t_start = 0
@@ -36,4 +36,4 @@ l1 = 1
 l2 = 0.25
 
 for i in range(1, n_steps+1):
-    
+    h1.hello()
