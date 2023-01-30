@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
-
 def bandit(action, mean_list, dev_list):
     reward = np.random.normal(mean_list[action], dev_list[action])
     return reward
@@ -26,7 +24,6 @@ def choose_action(Q, epsilon, num_arms):
 #         print(s[i])
 #     sns.catplot(data=df, x="age", y="class", kind="violin", color=".9", inner=None)
 #     sns.swarmplot(data=df, x="age", y="class", size=3)
-
 
 def main():
 
@@ -52,9 +49,6 @@ def plot_testing():
     mean_list = np.array([0,1,-1,2,-.5])
     dev_list = np.array([1,2,1,1,1])
     # plot_distributions(mean_list, dev_list):
-
-
-
 
 if __name__ == '__main__':
     main()

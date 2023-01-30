@@ -25,17 +25,17 @@ def get_wronskian(functions, symbol, to_print=True, to_plot=True):
         wronskian_matrix = Matrix([wronskian_matrix,j_matrix])
         j_matrix = Matrix() # Clear for next j loop
 
-    wronskian = wronskian_matrix.det()
+    wronskian1 = wronskian_matrix.det()
 
     if to_print:
         print("\nSymbolic Wronskian matrix:\n")
         pprint(wronskian_matrix)
         print("\nSymbolic Wronskian:\n")
-        pprint(wronskian)
+        pprint(wronskian1)
     if to_plot:
-        plot(wronskian, xlim=(0,2))
+        plot(wronskian1, xlim=(0,2))
 
-    return(wronskian)
+    return(wronskian1)
 
 def main():
 
@@ -53,3 +53,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
