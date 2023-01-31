@@ -29,9 +29,9 @@ def get_wronskian(functions, symbol, to_print=True, to_plot=True):
 
     if to_print:
         print("\nSymbolic Wronskian matrix:\n")
-        pprint(wronskian_matrix)
+        pprint(wronskian_matrix, use_unicode=False)
         print("\nSymbolic Wronskian:\n")
-        pprint(wronskian1)
+        pprint(wronskian1, use_unicode=False)
     if to_plot:
         plot(wronskian1, xlim=(0,2))
 
@@ -49,7 +49,7 @@ def main():
     # Sympy actually has an included wronskian() function that is similar to
     # what i've done. But their code is much smarter/cleaner than mine
     wb = wronskian(funcs1, x) # Built in sympy func
-    pprint(wb)
+    pprint(wb, use_unicode=False)
 
 if __name__ == '__main__':
     main()
