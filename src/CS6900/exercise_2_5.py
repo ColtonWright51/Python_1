@@ -12,24 +12,35 @@ import seaborn as sns
 # sample averages, and one with action-value method.
 
 class Bandits():
+    x = [1,2,3]
     def __init__(self, n_arms, n_steps):
-        self.Q = np.zeros(n_arms, n_steps)
-        self.N = np.ones(n_arms, n_steps)
+        self.Q = np.zeros((n_arms, n_steps))
+        self.N = np.ones((n_arms, n_steps))
+
+    def print_hello(self):
+        print("Hello")
 
 
 
 
 
 
+# def main():
+bandit1 = Bandits(2, 5)
+bandits2 = Bandits(3,3)
+print(bandit1.x)
+print(bandits2.x)
+bandit1.x = [4,5,6]
+print(bandit1.x)
+print(bandits2.x)
+# bandit1.print_hello()
+value = np.random.normal(loc=5,scale=.1,size=100)
+value2 = np.random.normal(loc=4,scale=.1,size=100)
+value = [value, value2]
+x=5
+sns.violinplot(value, inner='stick')
+plt.show()
+print(dir())
 
-
-def main():
-    print("HI")
-    value = np.random.normal(loc=5,scale=.1,size=1000)
-    x=5
-    sns.violinplot(value)
-    plt.show()
-    print(dir())
-
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
