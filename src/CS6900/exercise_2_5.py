@@ -87,6 +87,12 @@ def get_reward(mu_list, sigma_list):
         reward[i] = np.random.normal(mu_list[i], sigma_list[i], 1)
     return reward
 
+def plot_bandits(list_of_bandits):
+    print("plot_bandits")
+    plt.figure()
+    for i in list_of_bandits:
+        plt.plot(i)
+
 """
 We have two RL agents standing in front of several different levers. The
 agents both pull levers each time step and use their algorithms to learn. The
@@ -102,10 +108,11 @@ n_arms = 10
 n_steps = 10000
 epsilon = .01
 
-# Init variables
+# Init bandits
 bandit1 = Bandits(n_arms, n_steps, .1, "bandit1") # Agent 1
-bandit2 = Bandits(n_arms, n_steps, .01, "bandit2") # Agent 2
+bandit2 = Bandits(n_arms, n_steps, 0, "bandit2") # Agent 2
 
+# Init levers
 lower_mu, upper_mu = -1, 10
 lever_mu = np.zeros(n_arms) + (np.random.random(n_arms)*(upper_mu-lower_mu)+lower_mu)
 lower_sigma, upper_sigma = 1, 1
@@ -126,8 +133,8 @@ for i in range(1, n_steps):
     bandit2.rewards_received[i] = reward_array[B2_A]
     bandit2.N[:, i] = bandit2.N[:, i-1]
     bandit2.Q[:, i] = bandit2.Q[:, i-1]
-    bandit2.N[B1_A][i] = bandit2.N[B1_A][i] + 1
-    bandit2.Q[B1_A][i] = bandit2.Q[B1_A][i]+1/bandit2.N[B1_A][i]*(bandit2.rewards_received[i]-bandit2.Q[B1_A][i])
+    bandit2.N[B2_A][i] = bandit2.N[B2_A][i] + 1
+    bandit2.Q[B2_A][i] = bandit2.Q[B2_A][i]+1/bandit2.N[B2_A][i]*(bandit2.rewards_received[i]-bandit2.Q[B2_A][i])
 
     Bandits.step = Bandits.step + 1
 
