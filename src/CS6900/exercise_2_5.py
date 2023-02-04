@@ -36,6 +36,7 @@ class Bandits:
     def plot_reward(self):
         plt.figure()
         plt.plot(self.rewards_received)
+        plt.title(self.name + "_reward")
         modules.easy_plots.save_fig(self.name + "_reward")
 
     def get_avg_reward(self):
@@ -49,6 +50,7 @@ class Bandits:
         avg_reward = self.get_avg_reward()
         plt.figure()
         plt.plot(avg_reward)
+        plt.title(self.name + "_average_reward")
         modules.easy_plots.save_fig(self.name + "_average_reward")
     
     def plot_Q_max(self):
@@ -57,6 +59,7 @@ class Bandits:
             Q_max_arr[i] = np.max(self.Q[:, i])
         plt.figure()
         plt.plot(Q_max_arr)
+        plt.title(self.name + "_Q_max")
         modules.easy_plots.save_fig(self.name + "_Q_max")
 
 
@@ -75,6 +78,7 @@ def plot_levers(mu_list, sigma_list):
         values[i] = distribution
     plt.figure()
     sns.violinplot(values.T,inner='stick')
+    modules.easy_plots.save_fig("initial_levers")
 
 def get_reward(mu_list, sigma_list):
     # Get an array with the rewards of each lever for this time step
@@ -99,8 +103,8 @@ n_steps = 10000
 epsilon = .01
 
 # Init variables
-bandit1 = Bandits(n_arms, n_steps, epsilon, "bandit1") # Agent 1
-bandit2 = Bandits(n_arms, n_steps, epsilon, "bandit2") # Agent 2
+bandit1 = Bandits(n_arms, n_steps, .1, "bandit1") # Agent 1
+bandit2 = Bandits(n_arms, n_steps, .01, "bandit2") # Agent 2
 
 lower_mu, upper_mu = -1, 10
 lever_mu = np.zeros(n_arms) + (np.random.random(n_arms)*(upper_mu-lower_mu)+lower_mu)
@@ -118,12 +122,24 @@ for i in range(1, n_steps):
     bandit1.N[B1_A][i] = bandit1.N[B1_A][i] + 1
     bandit1.Q[B1_A][i] = bandit1.Q[B1_A][i]+1/bandit1.N[B1_A][i]*(bandit1.rewards_received[i]-bandit1.Q[B1_A][i])
 
-
+    B2_A = bandit2.sample_average_choose_action()
+    bandit2.rewards_received[i] = reward_array[B2_A]
+    bandit2.N[:, i] = bandit2.N[:, i-1]
+    bandit2.Q[:, i] = bandit2.Q[:, i-1]
+    bandit2.N[B1_A][i] = bandit2.N[B1_A][i] + 1
+    bandit2.Q[B1_A][i] = bandit2.Q[B1_A][i]+1/bandit2.N[B1_A][i]*(bandit2.rewards_received[i]-bandit2.Q[B1_A][i])
 
     Bandits.step = Bandits.step + 1
+
+
+
+
 bandit1.plot_reward()
 bandit1.plot_avg_reward()
 bandit1.plot_Q_max()
+bandit2.plot_reward()
+bandit2.plot_avg_reward()
+bandit2.plot_Q_max()
 plt.show()
 # if __name__ == '__main__':
 #     main()
