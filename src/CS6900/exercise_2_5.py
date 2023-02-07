@@ -62,6 +62,12 @@ class Bandits:
         plt.title(self.name + "_Q_max")
         modules.easy_plots.save_fig(self.name + "_Q_max")
 
+    def get_Q_max(self):
+        Q_max_arr = np.zeros(n_steps)
+        for i in range(self.n_steps):
+            Q_max_arr[i] = np.max(self.Q[:, i])
+        return Q_max_arr
+
 
 
 # Unused for now
@@ -69,6 +75,8 @@ class Levers():
     def __init__(self, mu, sigma):
         self.mu = mu # Mean
         self.sigma = sigma # Std. Dev.
+
+
 
 def plot_levers(mu_list, sigma_list):
     num_samps = 100
@@ -87,11 +95,28 @@ def get_reward(mu_list, sigma_list):
         reward[i] = np.random.normal(mu_list[i], sigma_list[i], 1)
     return reward
 
-def plot_bandits(list_of_bandits):
+def plot_bandits(list_of_bandits, mu_list):
     print("plot_bandits")
     plt.figure()
     for i in list_of_bandits:
-        plt.plot(i)
+        plt.plot(i.get_avg_reward())
+    plt.title("Bandits average reward")
+    modules.easy_plots.save_fig("bandits_avg_reward")
+
+    plt.figure()
+    for i in list_of_bandits:
+        plt.plot(i.get_Q_max(), label=i.name)
+    plt.legend()
+    plt.title("Bandits Q max")
+    modules.easy_plots.save_fig("bandits_Q_max")
+
+    # This is wrong I think, optimal action would be how often it pulls perfect lever
+    # plt.figure()
+    # for i in list_of_bandits:
+    #     plt.plot(i.get_Q_max()/np.max(mu_list)*100, label=i.name)
+    # plt.legend()
+    # plt.title("Bandits % optimal action")
+    # modules.easy_plots.save_fig("bandits_percent_optimal")
 
 """
 We have two RL agents standing in front of several different levers. The
@@ -121,7 +146,9 @@ plot_levers(lever_mu, lever_sigma) # Visualize levers at start
 
 
 for i in range(1, n_steps):
+
     reward_array = get_reward(lever_mu, lever_sigma) # Same reward this step
+
     B1_A = bandit1.sample_average_choose_action()
     bandit1.rewards_received[i] = reward_array[B1_A]
     bandit1.N[:, i] = bandit1.N[:, i-1]
@@ -147,6 +174,7 @@ bandit1.plot_Q_max()
 bandit2.plot_reward()
 bandit2.plot_avg_reward()
 bandit2.plot_Q_max()
+plot_bandits([bandit1, bandit2], lever_mu)
 plt.show()
 # if __name__ == '__main__':
 #     main()
