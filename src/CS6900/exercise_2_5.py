@@ -95,7 +95,7 @@ def get_reward(mu_list, sigma_list):
         reward[i] = np.random.normal(mu_list[i], sigma_list[i], 1)
     return reward
 
-def plot_bandits(list_of_bandits, mu_list):
+def plot_bandits(list_of_bandits):
     print("plot_bandits")
     plt.figure()
     for i in list_of_bandits:
@@ -109,14 +109,6 @@ def plot_bandits(list_of_bandits, mu_list):
     plt.legend()
     plt.title("Bandits Q max")
     modules.easy_plots.save_fig("bandits_Q_max")
-
-    # This is wrong I think, optimal action would be how often it pulls perfect lever
-    # plt.figure()
-    # for i in list_of_bandits:
-    #     plt.plot(i.get_Q_max()/np.max(mu_list)*100, label=i.name)
-    # plt.legend()
-    # plt.title("Bandits % optimal action")
-    # modules.easy_plots.save_fig("bandits_percent_optimal")
 
 """
 We have two RL agents standing in front of several different levers. The
@@ -149,6 +141,7 @@ for i in range(1, n_steps):
 
     reward_array = get_reward(lever_mu, lever_sigma) # Same reward this step
 
+    # Sample average
     B1_A = bandit1.sample_average_choose_action()
     bandit1.rewards_received[i] = reward_array[B1_A]
     bandit1.N[:, i] = bandit1.N[:, i-1]
@@ -156,6 +149,7 @@ for i in range(1, n_steps):
     bandit1.N[B1_A][i] = bandit1.N[B1_A][i] + 1
     bandit1.Q[B1_A][i] = bandit1.Q[B1_A][i]+1/bandit1.N[B1_A][i]*(bandit1.rewards_received[i]-bandit1.Q[B1_A][i])
 
+    # 
     B2_A = bandit2.sample_average_choose_action()
     bandit2.rewards_received[i] = reward_array[B2_A]
     bandit2.N[:, i] = bandit2.N[:, i-1]
@@ -174,7 +168,7 @@ bandit1.plot_Q_max()
 bandit2.plot_reward()
 bandit2.plot_avg_reward()
 bandit2.plot_Q_max()
-plot_bandits([bandit1, bandit2], lever_mu)
+plot_bandits([bandit1, bandit2])
 plt.show()
 # if __name__ == '__main__':
 #     main()
