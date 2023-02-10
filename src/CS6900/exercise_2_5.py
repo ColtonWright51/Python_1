@@ -19,22 +19,23 @@ class Bandits:
     def __init__(self, n_arms, n_steps, n_runs, epsilon, alpha, name):
         self.n_arms = n_arms
         self.n_steps = n_steps
-        self.Q = np.zeros((n_arms, n_steps))
-        self.N = np.zeros((n_arms, n_steps))
+        self.n_runs = n_runs
         self.epsilon = epsilon
         self.alpha = alpha
-
-        # These variables are for calculations etc. you don't need to put these in constructor
-        self.rewards_received = np.zeros(n_steps)
         self.name = name
 
+        # These variables are for calculations etc. you don't need to put these in constructor
+        self.Q = np.zeros((n_arms, n_steps))
+        self.N = np.zeros((n_arms, n_steps))
+        self.rewards_received = np.zeros(n_steps)
+        self.actions_taken = np.zeros(n_steps)
+        
         # These variables are going to save all the Q values across the number
         # of runs that we want. We are goind to shove Q into the page n_runs
         # once a run. Average all these pages together to get average Q and
         # N.
         self.Q_global = np.zeros((n_arms,n_steps,n_runs))
         self.N_global = np.zeros((n_arms,n_steps,n_runs))
-
 
     def sample_average_choose_action(self):
         random_float = np.random.random()
@@ -81,8 +82,6 @@ class Bandits:
 
     # Plot average Q_max of all the runs!
     def plot_global_Q_max(self, fig):
-
-
         Q_global_mean = np.mean(self.Q_global, axis=2)
         Q_global_max = np.zeros((n_steps))
 
@@ -93,8 +92,6 @@ class Bandits:
         plt.title(self.name + "_Q_global_max")
 
     def get_global_Q_max(self):
-
-
         Q_global_mean = np.mean(self.Q_global, axis=2)
         Q_global_max = np.zeros((n_steps))
 
@@ -108,7 +105,6 @@ class Levers():
     def __init__(self, mu, sigma):
         self.mu = mu # Mean
         self.sigma = sigma # Std. Dev.
-
 
 
 def plot_levers(mu_list, sigma_list):
@@ -130,7 +126,6 @@ def get_reward(mu_list, sigma_list):
     return reward
 
 def plot_globals_bandits(list_of_bandits):
-    
     # plt.figure()
     # for i in list_of_bandits:
     #     Q_global_max = i.get_global_Q_max()
@@ -171,7 +166,7 @@ at every time step.
 # CONSTANTS
 n_arms = 10
 n_steps = 10000
-n_runs = 100
+n_runs = 20
 epsilon = .01
 alpha1 = 0
 alpha2 = .1
@@ -203,6 +198,7 @@ for j in range(n_runs):
 
         # Sample average
         B1_A = bandit1.sample_average_choose_action()
+        bandit1.actions_taken[i] = B1_A
         bandit1.rewards_received[i] = reward_array[B1_A]
         bandit1.N[:, i] = bandit1.N[:, i-1]
         bandit1.Q[:, i] = bandit1.Q[:, i-1]
@@ -211,6 +207,7 @@ for j in range(n_runs):
 
         # 
         B2_A = bandit2.sample_average_choose_action()
+        bandit2.actions_taken[i] = B2_A
         bandit2.rewards_received[i] = reward_array[B2_A]
         bandit2.N[:, i] = bandit2.N[:, i-1]
         bandit2.Q[:, i] = bandit2.Q[:, i-1]
@@ -220,35 +217,33 @@ for j in range(n_runs):
         # The n in eq (2.6) in Sutton is the number of times this action has been chosen. So you
         # are summing over # of pulls, not what step you are on.
 
-        # This array is what we will sum up. # elements is the same as # times we have pulled the lever
-        to_sum = np.zeros(bandit2.N[B2_A, i])
-        to_sum[0] = (1-bandit2.alpha)**(bandit2.N[B2_A, i]-1)
-        for k in range(1, bandit2.N[B2_A, i]):
-            to_sum[k] 
-        bandit2.Q[B2_A][i] = 
+        # This array is what we will sum up.
+        to_sum = np.zeros(bandit2.N[B2_A, i]) # Terms to sum up == # of times we pulled this lever
+        to_sum[0] = (1-bandit2.alpha)**(bandit2.N[B2_A, i])*bandit2.Q[B2_A][0] # First term always the same
 
+        # Need to keep building to_sum
+
+
+
+
+
+        bandit2.Q[B2_A][i] = 1
+
+
+
+
+        bandit1.Q[B2_A][i] = bandit1.Q[B2_A][i]+1/bandit2.N[B2_A][i]*(bandit2.rewards_received[i]-bandit2.Q[B2_A][i])
 
 
         Bandits.step = Bandits.step + 1
         lever_mu = lever_mu + np.random.normal(random_mu, random_sigma, n_arms) # Walk levers
-        # if Bandits.step % int(n_steps/5) == 0:
-        #     plot_levers(lever_mu, lever_sigma)
 
     Bandits.step = 0
     bandit1.Q_global[:,:,j] = bandit1.Q[:,:] # Save that run
     bandit2.Q_global[:,:,j] = bandit2.Q[:,:]
 
-
-
-# plot_levers(lever_mu, lever_sigma)
-# bandit1.plot_reward()
-# bandit1.plot_avg_reward()
-# bandit1.plot_Q_max()
-# bandit1.plot_global_Q_max()
-# bandit2.plot_reward()
-# bandit2.plot_avg_reward()
-# bandit2.plot_Q_max()
 plot_globals_bandits([bandit1, bandit2])
 plt.show()
+
 # if __name__ == '__main__':
 #     main()
