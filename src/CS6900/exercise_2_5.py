@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import modules.easy_plots
-
+plt.style.use('dark_background')
 # Make a class so that we can just call the different methods twice, one with
 # sample averages, and one with action-value method.
 class Bandits:
@@ -86,7 +86,8 @@ def plot_levers(mu_list, sigma_list):
         values[i] = distribution
     plt.figure()
     sns.violinplot(values.T,inner='stick')
-    modules.easy_plots.save_fig("initial_levers")
+    plt.title("Levers at step " + str(Bandits.step))
+    modules.easy_plots.save_fig("levers_step_"+str(Bandits.step))
 
 def get_reward(mu_list, sigma_list):
     # Get an array with the rewards of each lever for this time step
@@ -131,8 +132,9 @@ bandit2 = Bandits(n_arms, n_steps, 0, "bandit2") # Agent 2
 
 # Init levers
 lower_mu, upper_mu = -1, 10
-lever_mu = np.zeros(n_arms) + (np.random.random(n_arms)*(upper_mu-lower_mu)+lower_mu)
 lower_sigma, upper_sigma = 1, 1
+random_mu, random_sigma = 0, .01 # Random walks the lever takes each step
+lever_mu = np.zeros(n_arms) + (np.random.random(n_arms)*(upper_mu-lower_mu)+lower_mu)
 lever_sigma = np.zeros(n_arms) + (np.random.random(n_arms)*(upper_sigma-lower_sigma)+lower_sigma)
 plot_levers(lever_mu, lever_sigma) # Visualize levers at start
 
@@ -158,10 +160,13 @@ for i in range(1, n_steps):
     bandit2.Q[B2_A][i] = bandit2.Q[B2_A][i]+1/bandit2.N[B2_A][i]*(bandit2.rewards_received[i]-bandit2.Q[B2_A][i])
 
     Bandits.step = Bandits.step + 1
+    lever_mu = lever_mu + np.random.normal(random_mu, random_sigma, n_arms)
+    if Bandits.step % int(n_steps/5) == 0:
+        plot_levers(lever_mu, lever_sigma)
 
 
 
-
+plot_levers(lever_mu, lever_sigma)
 bandit1.plot_reward()
 bandit1.plot_avg_reward()
 bandit1.plot_Q_max()
@@ -170,5 +175,6 @@ bandit2.plot_avg_reward()
 bandit2.plot_Q_max()
 plot_bandits([bandit1, bandit2])
 plt.show()
+print(int(n_steps/5))
 # if __name__ == '__main__':
 #     main()
