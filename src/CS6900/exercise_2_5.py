@@ -24,6 +24,7 @@ class Bandits:
         self.epsilon = epsilon
         self.alpha = alpha
 
+        # These variables are for calculations etc. you don't need to put these in constructor
         self.rewards_received = np.zeros(n_steps)
         self.name = name
 
