@@ -226,7 +226,7 @@ for j in range(n_runs):
 
 
 
-
+        # There should be alpha here soon
         bandit2.Q[B2_A][i] = 1
 
 
