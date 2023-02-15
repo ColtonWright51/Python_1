@@ -224,7 +224,7 @@ for j in range(n_runs):
 
 
         bandit1.Q[B2_A][i] = bandit1.Q[B2_A][i]+1/bandit2.N[B2_A][i]*(bandit2.rewards_received[i]-bandit2.Q[B2_A][i])
-
+        # Colton W
 
         Bandits.step = Bandits.step + 1
         lever_mu = lever_mu + np.random.normal(random_mu, random_sigma, n_arms) # Walk levers
