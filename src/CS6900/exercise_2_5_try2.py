@@ -82,25 +82,6 @@ class Bandits:
             Q_max_arr[i] = np.max(self.Q[:, i])
         return Q_max_arr
 
-    # Plot average Q_max of all the runs!
-    def plot_global_Q_max(self, fig):
-        Q_global_mean = np.mean(self.Q_global, axis=2)
-        Q_global_max = np.zeros((n_steps))
-
-        for i in range(self.n_steps):
-            Q_global_max[i] = np.max(Q_global_mean[:, i])
-        plt.figure(fig)
-        plt.plot(Q_global_max, label=self.name)
-        plt.title(self.name + "_Q_global_max")
-
-    def plot_global_Q_max_no_fig(self, ax):
-        Q_global_mean = np.mean(self.Q_global, axis=2)
-        Q_global_max = np.zeros((n_steps))
-        for i in range(self.n_steps):
-            Q_global_max[i] = np.max(Q_global_mean[:, i])
-        ax.plot(Q_global_max, label=self.name)
-
-
     def get_global_Q_max(self):
         Q_global_mean = np.mean(self.Q_global, axis=2)
         Q_global_max = np.zeros((n_steps))
@@ -141,13 +122,6 @@ def get_reward(mu_list, sigma_list):
     return reward
 
 def plot_globals_bandits(list_of_bandits):
-    # plt.figure()
-    # for i in list_of_bandits:
-    #     Q_global_max = i.get_global_Q_max()
-    #     plt.plot(Q_global_max, label=i.name)
-    # plt.legend()
-    # plt.title("Bandits global Q max")
-    # modules.easy_plots.save_fig("Q_global_max")
 
     plt.figure()
     for i in list_of_bandits:
@@ -156,40 +130,13 @@ def plot_globals_bandits(list_of_bandits):
     plt.title("Bandits global Q max")
     modules.easy_plots.save_fig("Q_global_max")
 
-    # for i in list_of_bandits:
-    #     plt.plot(i.get_avg_reward())
-    # plt.title("Bandits average reward")
-    # modules.easy_plots.save_fig("bandits_avg_reward")
-
-    # plt.figure()
-    # for i in list_of_bandits:
-    #     plt.plot(i.get_Q_max(), label=i.name)
-    # plt.legend()
-    # plt.title("Bandits Q max")
-    # modules.easy_plots.save_fig("bandits_Q_max")
-
 def plot_bandits_and_levers(list_of_bandits, lever_mu, lever_sigma):
     plt.figure()
     ax1 = plt.subplot(211)
     for i in list_of_bandits:
-        i.plot_global_Q_max_no_fig(ax1)
+        this_qmax = i.get_global_Q_max()
+        ax1.plt()
 
-
-    # ax2 = plt.subplot(212, sharex=ax1)
-    # num_samps = 100
-    # values = np.zeros((len(lever_mu),num_samps))
-    # for i in range(len(lever_mu)):
-    #     distribution = np.random.normal(lever_mu[i], lever_sigma[i], size=num_samps)
-    #     values[i] = distribution
-    # plt.figure()
-    # sns.violinplot(values.T,inner='stick')
-    # if Bandits.run == 0: # Init lever
-    #     plt.title("Levers at " + str(Bandits.step))
-    #     modules.easy_plots.save_fig("levers_step_"+str(Bandits.step))
-    # else:
-
-    #     plt.title("Levers at end of run " + str(Bandits.run))
-    #     modules.easy_plots.save_fig("levers_run_"+str(Bandits.run))
 
     plt.legend()
     plt.title("Bandits for run " + str(Bandits.run))

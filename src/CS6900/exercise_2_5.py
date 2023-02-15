@@ -255,7 +255,6 @@ for j in range(n_runs):
         bandit2.rewards_received[i] = reward_array[B2_A]
         bandit2.N[:, i] = bandit2.N[:, i-1]
         bandit2.Q[:, i] = bandit2.Q[:, i-1]
-<<<<<<< HEAD
         bandit2.N[B2_A][i] = bandit2.N[B2_A][i] + 1
 
         # Calculate the new expected reward for bandit 2, constant step-size parameter method.
@@ -279,10 +278,6 @@ for j in range(n_runs):
 
         bandit1.Q[B2_A][i] = bandit1.Q[B2_A][i]+1/bandit2.N[B2_A][i]*(bandit2.rewards_received[i]-bandit2.Q[B2_A][i])
 
-=======
-        bandit2.N[B2_A, i] = bandit2.N[B2_A, i] + 1
-        bandit2.Q[B2_A, i] = bandit2.Q[B2_A, i] + bandit2.alpha*(bandit2.rewards_received[i]-bandit2.Q[B2_A, i])
->>>>>>> 09347da (Big changes)
 
         Bandits.step = Bandits.step + 1
         lever_mu = lever_mu + np.random.normal(random_mu, random_sigma, n_arms) # Walk levers
