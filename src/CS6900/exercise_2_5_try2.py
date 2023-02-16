@@ -47,35 +47,6 @@ class Bandits:
             action = np.random.randint(0, n_arms)
         return action
 
-    def plot_reward(self):
-        plt.figure()
-        plt.plot(self.rewards_received)
-        plt.title(self.name + "_reward")
-        modules.easy_plots.save_fig(self.name + "_reward")
-
-    def get_avg_reward(self):
-        window = 1000
-        avg_reward = []
-        for i in range(len(self.rewards_received-window+1)):
-            avg_reward.append(np.mean(self.rewards_received[i:i+window]))
-        return avg_reward
-    
-    def plot_avg_reward(self):
-        avg_reward = self.get_avg_reward()
-        plt.figure()
-        plt.plot(avg_reward)
-        plt.title(self.name + "_average_reward")
-        modules.easy_plots.save_fig(self.name + "_average_reward")
-    
-    def plot_Q_max(self):
-        Q_max_arr = np.zeros(n_steps)
-        for i in range(self.n_steps):
-            Q_max_arr[i] = np.max(self.Q[:, i])
-        plt.figure()
-        plt.plot(Q_max_arr)
-        plt.title(self.name + "_Q_max")
-        modules.easy_plots.save_fig(self.name + "_Q_max")
-
     def get_Q_max(self):
         Q_max_arr = np.zeros(n_steps)
         for i in range(self.n_steps):
@@ -90,13 +61,7 @@ class Bandits:
             Q_global_max[i] = np.max(Q_global_mean[:, i])
         return Q_global_max
 
-
-# Unused for now
-class Levers():
-    def __init__(self, mu, sigma):
-        self.mu = mu # Mean
-        self.sigma = sigma # Std. Dev.
-
+#-----------------------------------------------------------------------------
 
 def plot_levers(mu_list, sigma_list, run_num = 0):
     num_samps = 100
@@ -125,18 +90,18 @@ def plot_globals_bandits(list_of_bandits):
 
     plt.figure()
     for i in list_of_bandits:
-        i.plot_global_Q_max(plt.gcf().number)
+        q_max = i.get_global_Q_max()
+        plt.plot(q_max)
     plt.legend()
     plt.title("Bandits global Q max")
     modules.easy_plots.save_fig("Q_global_max")
 
-def plot_bandits_and_levers(list_of_bandits, lever_mu, lever_sigma):
+def plot_bandits(list_of_bandits, lever_mu, lever_sigma):
+    
     plt.figure()
-    ax1 = plt.subplot(211)
     for i in list_of_bandits:
-        this_qmax = i.get_global_Q_max()
-        ax1.plt()
-
+        this_qmax = i.get_Q_max()
+        plt.plot(this_qmax, label=i.name)
 
     plt.legend()
     plt.title("Bandits for run " + str(Bandits.run))
@@ -171,10 +136,6 @@ lower_mu, upper_mu = -1, 10
 lower_sigma, upper_sigma = 1, 1
 random_mu, random_sigma = 0, .01 # Random walks the lever takes each step
 
-# This was for random value & random distribution levers. We want equal levers at the beginnning
-# lever_mu = np.zeros(n_arms) + (np.random.random(n_arms)*(upper_mu-lower_mu)+lower_mu)
-# lever_sigma = np.zeros(n_arms) + (np.random.random(n_arms)*(upper_sigma-lower_sigma)+lower_sigma)
-
 lever_mu = np.zeros(n_arms) + 1
 lever_sigma = np.zeros(n_arms) + .01
 
@@ -203,28 +164,10 @@ for j in range(n_runs):
         bandit2.N[:, i] = bandit2.N[:, i-1]
         bandit2.Q[:, i] = bandit2.Q[:, i-1]
         bandit2.N[B2_A][i] = bandit2.N[B2_A][i] + 1
-
         # Calculate the new expected reward for bandit 2, constant step-size parameter method.
         # The n in eq (2.6) in Sutton is the number of times this action has been chosen. So you
         # are summing over # of pulls, not what step you are on.
-
-        # This array is what we will sum up.
-        to_sum = np.zeros(bandit2.N[B2_A, i]) # Terms to sum up == # of times we pulled this lever
-        to_sum[0] = (1-bandit2.alpha)**(bandit2.N[B2_A, i])*bandit2.Q[B2_A][0] # First term always the same
-
-        # Need to keep building to_sum
-
-
-
-
-        # There should be alpha here soon
-        bandit2.Q[B2_A][i] = 1
-
-
-
-
-        bandit1.Q[B2_A][i] = bandit1.Q[B2_A][i]+1/bandit2.N[B2_A][i]*(bandit2.rewards_received[i]-bandit2.Q[B2_A][i])
-        # Colton W
+        bandit2.Q[B2_A, i] = bandit2.Q[B2_A, i] + bandit2.alpha*(bandit2.rewards_received[i]-bandit2.Q[B2_A, i])
 
         Bandits.step = Bandits.step + 1
         lever_mu = lever_mu + np.random.normal(random_mu, random_sigma, n_arms) # Walk levers
@@ -235,7 +178,7 @@ for j in range(n_runs):
     Bandits.run = Bandits.run + 1
     bandit1.Q_global[:,:,j] = bandit1.Q[:,:] # Save that run
     bandit2.Q_global[:,:,j] = bandit2.Q[:,:]
-    plot_bandits_and_levers([bandit1, bandit2], lever_mu, lever_sigma) # Visualize levers at end of each run
+    plot_bandits([bandit1, bandit2], lever_mu, lever_sigma) # Visualize levers at end of each run
     # Reset steps
     Bandits.step = 0
     # Reset the levers for the next run...
