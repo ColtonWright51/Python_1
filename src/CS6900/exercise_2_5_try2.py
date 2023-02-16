@@ -48,20 +48,33 @@ class Bandits:
         return action
 
     def get_Q_max(self):
-        Q_max_arr = np.zeros(n_steps)
+        # Get the maximum expected reward at each step in a run. Useful because
+        # we can plot it and see which algorithm has a larger EXPECTED reward
+        Q_max_arr = np.zeros(self.n_steps)
         for i in range(self.n_steps):
             Q_max_arr[i] = np.max(self.Q[:, i])
         return Q_max_arr
 
     def get_global_Q_max(self):
+        # Same as above, but first we average every run together and then get
+        # the largest expected turn of each step of that
         Q_global_mean = np.mean(self.Q_global, axis=2)
-        Q_global_max = np.zeros((n_steps))
+        Q_global_max = np.zeros((self.n_steps))
 
         for i in range(self.n_steps):
             Q_global_max[i] = np.max(Q_global_mean[:, i])
         return Q_global_max
 
 #-----------------------------------------------------------------------------
+
+
+
+def get_reward(mu_list, sigma_list):
+    # Get an array with the rewards of each lever for this time step
+    reward = np.zeros(len(mu_list))
+    for i in range(len(mu_list)):
+        reward[i] = np.random.normal(mu_list[i], sigma_list[i], 1)
+    return reward
 
 def plot_levers(mu_list, sigma_list, run_num = 0):
     num_samps = 100
@@ -79,23 +92,6 @@ def plot_levers(mu_list, sigma_list, run_num = 0):
         plt.title("Levers at end of run " + str(run_num))
         modules.easy_plots.save_fig("levers_run_"+str(run_num))
 
-def get_reward(mu_list, sigma_list):
-    # Get an array with the rewards of each lever for this time step
-    reward = np.zeros(len(mu_list))
-    for i in range(len(mu_list)):
-        reward[i] = np.random.normal(mu_list[i], sigma_list[i], 1)
-    return reward
-
-def plot_globals_bandits(list_of_bandits):
-
-    plt.figure()
-    for i in list_of_bandits:
-        q_max = i.get_global_Q_max()
-        plt.plot(q_max)
-    plt.legend()
-    plt.title("Bandits global Q max")
-    modules.easy_plots.save_fig("Q_global_max")
-
 def plot_bandits(list_of_bandits, lever_mu, lever_sigma):
     
     plt.figure()
@@ -106,6 +102,16 @@ def plot_bandits(list_of_bandits, lever_mu, lever_sigma):
     plt.legend()
     plt.title("Bandits for run " + str(Bandits.run))
     modules.easy_plots.save_fig("run_"+ str(Bandits.run))
+
+def plot_globals_bandits(list_of_bandits):
+
+    plt.figure()
+    for i in list_of_bandits:
+        q_max = i.get_global_Q_max()
+        plt.plot(q_max, label=i.name)
+    plt.legend()
+    plt.title("Bandits global Q max")
+    modules.easy_plots.save_fig("Q_global_max")
 
 
 """
@@ -171,8 +177,6 @@ for j in range(n_runs):
 
         Bandits.step = Bandits.step + 1
         lever_mu = lever_mu + np.random.normal(random_mu, random_sigma, n_arms) # Walk levers
-
-
 
 
     Bandits.run = Bandits.run + 1
