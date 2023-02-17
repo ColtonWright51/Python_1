@@ -6,8 +6,24 @@ Second Edition"
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 
-import modules.easy_plots
+# Where to save the figures
+PROJECT_ROOT_DIR = "."
+IMAGES_PATH = os.path.join(PROJECT_ROOT_DIR, "images", "CS6900", "HW1")
+os.makedirs(IMAGES_PATH, exist_ok=True)
+def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
+    path = os.path.join(IMAGES_PATH, fig_id + "." + fig_extension)
+    print("Saving figure", fig_id)
+    if tight_layout:
+        plt.tight_layout()
+    plt.savefig(path, format=fig_extension, dpi=resolution)
+
+
+
+
+
+
 
 
 # Make a class so that we can just call the different methods twice, one with
@@ -105,19 +121,16 @@ def get_reward(mu_list, sigma_list):
 
 def plot_levers(mu_list, sigma_list, run_num = 0):
     num_samps = 100
-    values = np.zeros((len(mu_list),num_samps))
-    for i in range(len(mu_list)):
-        distribution = np.random.normal(mu_list[i], sigma_list[i], size=num_samps)
-        values[i] = distribution
+    values = np.random.normal(mu_list[:, np.newaxis], sigma_list[:, np.newaxis], size=(len(mu_list), num_samps))
     plt.figure()
     sns.violinplot(values.T,inner='stick')
     if run_num == 0: # Init lever
         plt.title("Levers at " + str(Bandits.step))
-        modules.easy_plots.save_fig("levers_step_"+str(Bandits.step))
+        save_fig("levers_step_"+str(Bandits.step))
     else:
 
         plt.title("Levers at end of run " + str(run_num))
-        modules.easy_plots.save_fig("levers_run_"+str(run_num))
+        save_fig("levers_run_"+str(run_num))
 
 def plot_bandits_and_action(list_of_bandits):
     
@@ -127,17 +140,16 @@ def plot_bandits_and_action(list_of_bandits):
         this_qmax = i.get_Q_max()
         ax1.plot(this_qmax, label=i.name)
 
-
     ax1.set_title("Bandits max(Q) for run " + str(Bandits.run))
 
-    # PLot chosen action vs time, make sure we are exploring
+    # Plot chosen action vs time, make sure we are exploring
     for i in list_of_bandits:
         chosen_action = i.actions_taken
         ax2.plot(chosen_action, label=i.name)
     
     plt.legend()
     ax2.set_title("Bandits chosen action for run " + str(Bandits.run))
-    modules.easy_plots.save_fig("Q_and_action_run_"+ str(Bandits.run))
+    save_fig("Q_and_action_run_"+ str(Bandits.run))
 
 def plot_bandits(list_of_bandits):
 
@@ -148,7 +160,7 @@ def plot_bandits(list_of_bandits):
 
     plt.legend()
     plt.title("Bandits run " + str(Bandits.run))
-    modules.easy_plots.save_fig("Q_run_"+ str(Bandits.run))
+    save_fig("Q_run_"+ str(Bandits.run))
 
 def plot_globals_bandits(list_of_bandits):
 
@@ -158,7 +170,7 @@ def plot_globals_bandits(list_of_bandits):
         plt.plot(q_max, label=i.name)
     plt.legend()
     plt.title("Bandits global Q max")
-    modules.easy_plots.save_fig("Q_global_max")
+    save_fig("Q_global_max")
 
 """
 We have two RL agents standing in front of several different levers. The
