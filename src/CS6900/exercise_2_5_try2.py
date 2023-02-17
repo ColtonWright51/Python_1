@@ -31,7 +31,7 @@ class Bandits:
         self.N = np.zeros((n_arms, n_steps))
         self.rewards_received = np.zeros(n_steps)
         self.actions_taken = np.zeros(n_steps)
-        
+
         # These variables are going to save all the Q values across the number
         # of runs that we want. We are goind to shove Q into the page n_runs
         # once a run. Average all these pages together to get average Q and
@@ -147,10 +147,10 @@ at every time step.
 
 # CONSTANTS
 n_arms = 10
-n_steps = 50
+n_steps = 200
 n_runs = 5
 epsilon1 = .1
-epsilon2 = 0
+epsilon2 = .1
 alpha1 = 0
 alpha2 = .1
 
