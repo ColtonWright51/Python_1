@@ -8,12 +8,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 import modules.easy_plots
-# plt.style.use('dark_background')
 
 
 # Make a class so that we can just call the different methods twice, one with
 # sample averages, and one with action-value method.
 class Bandits:
+    """
+    Make a class so that we can just call the different methods twice, one with
+    sample averages, and one with the action-value method. Action value should
+    perform better, and we see that it does.
+    """
 
     step = 0 # What time step we are on, this is shared by all instances of Bandits class
     run = 0 # What run are we on, this is shared by all instances of Bandits class
@@ -65,9 +69,7 @@ class Bandits:
         the greedy action every time?
         """
 
-        Q_max_arr = np.zeros(self.n_steps)
-        for i in range(self.n_steps):
-            Q_max_arr[i] = np.max(self.Q[:, i])
+        Q_max_arr = np.max(self.Q, axis=0)
         return Q_max_arr
 
     def get_global_Q_max(self):
@@ -81,25 +83,24 @@ class Bandits:
         high values and drop the average. Will not be accurate.
         """
 
-        Q_global_mean = np.mean(self.Q_global, axis=2)
-        Q_global_max = np.zeros((self.n_steps))
+        # Return maximum Q over all steps and runs, n_steps x n_runs array
+        Q_global_max = np.max(self.Q_global, axis=0)
 
-        for i in range(self.n_steps):
-            Q_global_max[i] = np.max(Q_global_mean[:, i])
-        return Q_global_max
-    
-        for j in range(self.n_runs):
-            
+        # Return the average Q_max over all the runs, n_steps x 1 array
+        Q_global_max_mean = np.max(Q_global_max, axis = 1)
 
+        return Q_global_max_mean
 #-----------------------------------------------------------------------------
 
 
 
 def get_reward(mu_list, sigma_list):
-    # Get an array with the rewards of each lever for this time step
-    reward = np.zeros(len(mu_list))
-    for i in range(len(mu_list)):
-        reward[i] = np.random.normal(mu_list[i], sigma_list[i], 1)
+    """
+    Get an array with the rewards of each lever for this time step
+    """
+
+    # Return n_armsx1 array of the rewards for this step
+    reward = np.random.normal(mu_list, sigma_list)
     return reward
 
 def plot_levers(mu_list, sigma_list, run_num = 0):
@@ -118,7 +119,7 @@ def plot_levers(mu_list, sigma_list, run_num = 0):
         plt.title("Levers at end of run " + str(run_num))
         modules.easy_plots.save_fig("levers_run_"+str(run_num))
 
-def plot_bandits(list_of_bandits):
+def plot_bandits_and_action(list_of_bandits):
     
     # Plot expected reward of greedy action vs time
     f, (ax1,ax2) = plt.subplots(1,2, sharex=True)
@@ -136,8 +137,18 @@ def plot_bandits(list_of_bandits):
     
     plt.legend()
     ax2.set_title("Bandits chosen action for run " + str(Bandits.run))
-    modules.easy_plots.save_fig("run_"+ str(Bandits.run))
+    modules.easy_plots.save_fig("Q_and_action_run_"+ str(Bandits.run))
 
+def plot_bandits(list_of_bandits):
+
+    plt.figure()
+    for i in list_of_bandits:
+        this_qmax = i.get_Q_max()
+        plt.plot(this_qmax, label=i.name)
+
+    plt.legend()
+    plt.title("Bandits run " + str(Bandits.run))
+    modules.easy_plots.save_fig("Q_run_"+ str(Bandits.run))
 
 def plot_globals_bandits(list_of_bandits):
 
@@ -148,7 +159,6 @@ def plot_globals_bandits(list_of_bandits):
     plt.legend()
     plt.title("Bandits global Q max")
     modules.easy_plots.save_fig("Q_global_max")
-
 
 """
 We have two RL agents standing in front of several different levers. The
@@ -162,8 +172,8 @@ at every time step.
 
 # CONSTANTS
 n_arms = 10
-n_steps = 5
-n_runs = 3
+n_steps = 10000
+n_runs = 30
 epsilon1 = .1
 epsilon2 = .1
 alpha1 = 0
@@ -217,7 +227,6 @@ for j in range(n_runs):
 
     Bandits.run = Bandits.run + 1
     bandit1.Q_global[:,:,j] = bandit1.Q[:,:] # Save that run
-    print(bandit1.Q[:,:])
     bandit2.Q_global[:,:,j] = bandit2.Q[:,:]
     plot_bandits([bandit1, bandit2]) # Visualize levers at end of each run
     # Reset bandits for the next run...
@@ -229,11 +238,7 @@ for j in range(n_runs):
 
 
 
-print(bandit1.Q_global)
-print("\n\n\n\n")
-print(np.mean(bandit1.Q_global, axis=2))
 plot_globals_bandits([bandit1, bandit2])
-look_here = bandit2.Q_global
 plt.show()
 
 # if __name__ == '__main__':
