@@ -46,6 +46,17 @@ class Bandits:
         else: # Choose randomly among your actions
             action = np.random.randint(0, n_arms)
         return action
+    
+    def reset(self):
+        """
+        Reset the bandit variables for the next run. Important to run this between runs.
+        """
+
+        self.Q = np.zeros((n_arms, n_steps))
+        self.N = np.zeros((n_arms, n_steps))
+        self.rewards_received = np.zeros(n_steps)
+        self.actions_taken = np.zeros(n_steps)
+        Bandits.step = 0
 
     def get_Q_max(self):
         # Get the maximum expected reward at each step in a run. Useful because
@@ -92,16 +103,26 @@ def plot_levers(mu_list, sigma_list, run_num = 0):
         plt.title("Levers at end of run " + str(run_num))
         modules.easy_plots.save_fig("levers_run_"+str(run_num))
 
-def plot_bandits(list_of_bandits, lever_mu, lever_sigma):
+def plot_bandits(list_of_bandits):
     
-    plt.figure()
+    # Plot expected reward of greedy action vs time
+    f, (ax1,ax2) = plt.subplots(1,2, sharex=True)
     for i in list_of_bandits:
         this_qmax = i.get_Q_max()
-        plt.plot(this_qmax, label=i.name)
+        ax1.plot(this_qmax, label=i.name)
 
+
+    ax1.set_title("Bandits max(Q) for run " + str(Bandits.run))
+
+    # PLot chosen action vs time, make sure we are exploring
+    for i in list_of_bandits:
+        chosen_action = i.actions_taken
+        ax2.plot(chosen_action, label=i.name)
+    
     plt.legend()
-    plt.title("Bandits for run " + str(Bandits.run))
+    ax2.set_title("Bandits chosen action for run " + str(Bandits.run))
     modules.easy_plots.save_fig("run_"+ str(Bandits.run))
+
 
 def plot_globals_bandits(list_of_bandits):
 
@@ -126,7 +147,7 @@ at every time step.
 
 # CONSTANTS
 n_arms = 10
-n_steps = 10000
+n_steps = 50
 n_runs = 5
 epsilon1 = .1
 epsilon2 = 0
@@ -182,19 +203,15 @@ for j in range(n_runs):
     Bandits.run = Bandits.run + 1
     bandit1.Q_global[:,:,j] = bandit1.Q[:,:] # Save that run
     bandit2.Q_global[:,:,j] = bandit2.Q[:,:]
-    plot_bandits([bandit1, bandit2], lever_mu, lever_sigma) # Visualize levers at end of each run
-    # Reset steps
-    Bandits.step = 0
+    plot_bandits([bandit1, bandit2]) # Visualize levers at end of each run
+    # Reset bandits for the next run...
+    bandit1.reset()
+    bandit2.reset()
     # Reset the levers for the next run...
     lever_mu = np.zeros(n_arms) + 1
     lever_sigma = np.zeros(n_arms) + .01
 
-    # Reset Q and N for next runs...
-    bandit1.Q = np.zeros((n_arms, n_steps))
-    bandit1.N = np.zeros((n_arms, n_steps))
 
-    bandit2.Q = np.zeros((n_arms, n_steps))
-    bandit2.N = np.zeros((n_arms, n_steps))
 
 
 plot_globals_bandits([bandit1, bandit2])
