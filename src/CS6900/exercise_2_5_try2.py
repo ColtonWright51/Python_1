@@ -59,22 +59,37 @@ class Bandits:
         Bandits.step = 0
 
     def get_Q_max(self):
-        # Get the maximum expected reward at each step in a run. Useful because
-        # we can plot it and see which algorithm has a larger EXPECTED reward
+        """
+        Get the largest Q value of all the actions at every time step. This is
+        how we rank our bandits, who could make the most money from choosing
+        the greedy action every time?
+        """
+
         Q_max_arr = np.zeros(self.n_steps)
         for i in range(self.n_steps):
             Q_max_arr[i] = np.max(self.Q[:, i])
         return Q_max_arr
 
     def get_global_Q_max(self):
-        # Same as above, but first we average every run together and then get
-        # the largest expected turn of each step of that
+        """
+        Average together all of the runs. Then find the largest Q value of all
+        the actions at every time step. This will smooth out all the bumps and
+        tell us which algorithm is working best on average.
+
+        Note: It's actually mandatory that you find the max of each run first,
+        and then average that together. If you don't, it will average zeros with 
+        high values and drop the average. Will not be accurate.
+        """
+
         Q_global_mean = np.mean(self.Q_global, axis=2)
         Q_global_max = np.zeros((self.n_steps))
 
         for i in range(self.n_steps):
             Q_global_max[i] = np.max(Q_global_mean[:, i])
         return Q_global_max
+    
+        for j in range(self.n_runs):
+            
 
 #-----------------------------------------------------------------------------
 
@@ -147,8 +162,8 @@ at every time step.
 
 # CONSTANTS
 n_arms = 10
-n_steps = 200
-n_runs = 5
+n_steps = 5
+n_runs = 3
 epsilon1 = .1
 epsilon2 = .1
 alpha1 = 0
@@ -181,8 +196,8 @@ for j in range(n_runs):
         bandit1.rewards_received[i] = reward_array[B1_A]
         bandit1.N[:, i] = bandit1.N[:, i-1]
         bandit1.Q[:, i] = bandit1.Q[:, i-1]
-        bandit1.N[B1_A][i] = bandit1.N[B1_A, i] + 1
-        bandit1.Q[B1_A][i] = bandit1.Q[B1_A, i]+1/bandit1.N[B1_A, i]*(bandit1.rewards_received[i]-bandit1.Q[B1_A, i])
+        bandit1.N[B1_A, i] = bandit1.N[B1_A, i] + 1
+        bandit1.Q[B1_A, i] = bandit1.Q[B1_A, i]+1/bandit1.N[B1_A, i]*(bandit1.rewards_received[i]-bandit1.Q[B1_A, i])
 
 
         B2_A = bandit2.sample_average_choose_action()
@@ -202,6 +217,7 @@ for j in range(n_runs):
 
     Bandits.run = Bandits.run + 1
     bandit1.Q_global[:,:,j] = bandit1.Q[:,:] # Save that run
+    print(bandit1.Q[:,:])
     bandit2.Q_global[:,:,j] = bandit2.Q[:,:]
     plot_bandits([bandit1, bandit2]) # Visualize levers at end of each run
     # Reset bandits for the next run...
@@ -213,8 +229,11 @@ for j in range(n_runs):
 
 
 
-
+print(bandit1.Q_global)
+print("\n\n\n\n")
+print(np.mean(bandit1.Q_global, axis=2))
 plot_globals_bandits([bandit1, bandit2])
+look_here = bandit2.Q_global
 plt.show()
 
 # if __name__ == '__main__':
