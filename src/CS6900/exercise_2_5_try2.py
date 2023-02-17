@@ -190,7 +190,7 @@ for j in range(n_runs):
         bandit2.rewards_received[i] = reward_array[B2_A]
         bandit2.N[:, i] = bandit2.N[:, i-1]
         bandit2.Q[:, i] = bandit2.Q[:, i-1]
-        bandit2.N[B2_A][i] = bandit2.N[B2_A][i] + 1
+        bandit2.N[B2_A, i] = bandit2.N[B2_A, i] + 1
         # Calculate the new expected reward for bandit 2, constant step-size parameter method.
         # The n in eq (2.6) in Sutton is the number of times this action has been chosen. So you
         # are summing over # of pulls, not what step you are on.
