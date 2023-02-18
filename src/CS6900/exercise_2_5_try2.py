@@ -112,6 +112,7 @@ class Bandits:
         window_size = 100
         avg_reward = np.convolve(self.rewards_received, np.ones(window_size)/window_size, mode='valid')
         return avg_reward
+    
 #-----------------------------------------------------------------------------
 
 
@@ -202,7 +203,7 @@ at every time step.
 # CONSTANTS
 n_arms = 10
 n_steps = 10000
-n_runs = 8000
+n_runs = 200
 epsilon1 = .1
 epsilon2 = .1
 alpha1 = 0
