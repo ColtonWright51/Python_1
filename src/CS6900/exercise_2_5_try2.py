@@ -59,6 +59,7 @@ class Bandits:
         self.Q_global = np.zeros((n_arms,n_steps,n_runs))
         self.N_global = np.zeros((n_arms,n_steps,n_runs))
 
+
     def sample_average_choose_action(self):
         random_float = np.random.random()
         if random_float >= (self.epsilon):
@@ -106,6 +107,11 @@ class Bandits:
         Q_global_max_mean = np.max(Q_global_max, axis = 1)
 
         return Q_global_max_mean
+    
+    def get_avg_reward(self):
+        window_size = 100
+        avg_reward = np.convolve(self.rewards_received, np.ones(window_size)/window_size, mode='valid')
+        return avg_reward
 #-----------------------------------------------------------------------------
 
 
@@ -162,6 +168,17 @@ def plot_bandits(list_of_bandits):
     plt.title("Bandits run " + str(Bandits.run))
     save_fig("Q_run_"+ str(Bandits.run))
 
+def plot_bandits_avg_reward(list_of_bandits):
+
+    plt.figure()
+    for i in list_of_bandits:
+        this_avg = i.get_avg_reward()
+        plt.plot(this_avg, label=i.name)
+
+    plt.legend()
+    plt.title("Bandits average reward run " + str(Bandits.run))
+    save_fig("avg_reward_run_"+ str(Bandits.run))
+
 def plot_globals_bandits(list_of_bandits):
 
     plt.figure()
@@ -169,8 +186,8 @@ def plot_globals_bandits(list_of_bandits):
         q_max = i.get_global_Q_max()
         plt.plot(q_max, label=i.name)
     plt.legend()
-    plt.title("Bandits global Q max")
-    save_fig("Q_global_max")
+    plt.title("Bandits global Q max "+str(Bandits.run)+ " runs")
+    save_fig("Q_global_max_"+str(Bandits.run))
 
 """
 We have two RL agents standing in front of several different levers. The
@@ -185,7 +202,7 @@ at every time step.
 # CONSTANTS
 n_arms = 10
 n_steps = 10000
-n_runs = 30
+n_runs = 8000
 epsilon1 = .1
 epsilon2 = .1
 alpha1 = 0
@@ -240,7 +257,8 @@ for j in range(n_runs):
     Bandits.run = Bandits.run + 1
     bandit1.Q_global[:,:,j] = bandit1.Q[:,:] # Save that run
     bandit2.Q_global[:,:,j] = bandit2.Q[:,:]
-    plot_bandits([bandit1, bandit2]) # Visualize levers at end of each run
+    # plot_bandits([bandit1, bandit2]) # Visualize at end of each run
+    # plot_bandits_avg_reward([bandit1, bandit2])
     # Reset bandits for the next run...
     bandit1.reset()
     bandit2.reset()
