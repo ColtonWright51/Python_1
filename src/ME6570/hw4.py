@@ -1,11 +1,13 @@
 """
-Solution to John Cotton's ME6570 HW4
-
+hw4.py
 Created by Colton Wright on 2/18/2023
+
+Solution to John Cotton's ME6570 HW4
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
+from sympy import *
 import os
 
 # Where to save the figures
@@ -166,7 +168,6 @@ def apply_EBC(K, F, method):
 
 # def main():
 
-
 mu = 0.01
 dpdx = -7
 tau = 0.1
@@ -180,8 +181,8 @@ y_s = np.linspace(0, h, 100)
 u_s = (2*tau*y_s + dpdx*y_s**2 - 2*dpdx*h*y_s)/(2*mu)
 
 plt.figure()
-plt.plot(u,y, label='5 nodes')
-plt.plot(u2, y2, label='50 nodes')
+plt.plot(u,y, '-o', label='5 nodes')
+plt.plot(u2, y2, '-o', label='50 nodes')
 plt.plot(u_s, y_s, label='Symbolic')
 plt.legend()
 save_fig("solution")
