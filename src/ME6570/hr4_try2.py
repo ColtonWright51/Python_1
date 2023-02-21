@@ -140,39 +140,6 @@ def apply_EBC(K, F, method):
 
 
 
-def interpol(xp, xn, un):
-    """
-    Interpolates the quadratic polynomial between the node points.
-
-    Parameters:
-    xp (array): 1-D array of x-values at which to interpolate.
-    xn (array): 1-D array of x-coordinates of the nodes.
-    un (array): 1-D array of y-coordinates of the nodes.
-
-    Returns:
-    up (array): 1-D array of interpolated y-values at the points in xp.
-    dudxp (array): 1-D array of the first derivatives of the quadratic polynomial
-                   at the points in xp.
-    """
-
-    nelm = (len(xn) - 1) // 2
-    iconn = hw3.getConn(nelm)  # get connectivity matrix
-    up = np.zeros(len(xp))
-    dudxp = np.zeros(len(xp))
-
-    for i in range(len(xp)):
-        for ie in range(nelm):
-            if xp[i] <= xn[iconn[ie, 2]]:
-                ln = iconn[ie, 0]
-                rn = iconn[ie, 2]
-                up[i], dudxp[i] = lagrange(xp[i], xn[ln:rn+1], un[ln:rn+1])
-                break
-
-    return up, dudxp
-
-
-
-
 
 
 
@@ -197,22 +164,15 @@ y_q7_interp = np.linspace(0,y_q7[2],1000)
 y_q7_interp2 = np.linspace(y_q7[2],y_q7[4],1000)
 y_q7_interp3 = np.linspace(y_q7[4],y_q7[6],1000)
 
-lagr1 = [1, 1, 1]
-for i in range(3):
-    for j in range(3):
-            if i != j: # If i=j, we just skip this loop
+lagr1 = scipy.interpolate.lagrange([y_q7[0], y_q7[1], y_q7[2]], [u_q7[0], u_q7[1], u_q7[2]])
+lagr2 = scipy.interpolate.lagrange([y_q7[2], y_q7[3], y_q7[4]], [u_q7[2], u_q7[3], u_q7[4]])
+lagr3 = scipy.interpolate.lagrange([y_q7[4], y_q7[5], y_q7[6]], [u_q7[4], u_q7[5], u_q7[6]])
 
-                lagr1[i] = lagr1[i] * (y_q7_interp-y_q7[j])/ (y_q7[i]-y_q7[j])
-u_q7_interp = 0
-for i in range(3):
-    u_q7_interp = u_q7_interp + u_q7[i]*lagr1[i]
-lagr2 = scipy.interpolate.lagrange([y_q7[0], y_q7[1], y_q7[2]], [u_q7[0], u_q7[1], u_q7[2]])
-lagr3 = scipy.interpolate.lagrange([y_q7[2], y_q7[3], y_q7[4]], [u_q7[2], u_q7[3], u_q7[4]])
-print(lagr2)
 plt.figure()
 plt.plot(u_q7,y_q7, 'o', label='u_q7')
-plt.plot(lagr2(y_q7_interp), y_q7_interp, 'g-')
-plt.plot(lagr3(y_q7_interp2), y_q7_interp2, 'g-')
+plt.plot(lagr1(y_q7_interp), y_q7_interp, 'g-', label='Interpolation')
+plt.plot(lagr2(y_q7_interp2), y_q7_interp2, 'g-')
+plt.plot(lagr3(y_q7_interp3), y_q7_interp3, 'g-')
 plt.legend()
 plt.grid(True)
 save_fig("solution_uq7")
@@ -255,8 +215,62 @@ plt.grid(True)
 plt.title("Residual of Symbolic and FEA approximations")
 save_fig("residuals")
 
+# Part 2 done. Now compare secondary variables:
 
-# plt.show()
+# Part 3A
+f1 = scipy.interpolate.interp1d(y_L7, u_L7, kind='linear')
+f1_ar = [0, 0, 0, 0, 0, 0, 0]
+f1_d_ar = [0, 0, 0, 0, 0, 0, 0]
+
+plt.figure()
+for i in range(6):
+
+    f1_ar[i] = f1((np.linspace(y_L7[i], y_L7[i+1], 50)))
+    f1_d_ar[i] = np.gradient(f1_ar[i])
+    
+    plt.plot( f1_d_ar[i], np.linspace(y_L7[i], y_L7[i+1], 50))
+
+plt.legend()
+plt.grid(True)
+plt.title("")
+save_fig("secondary_L7a")
+
+# Part 3B
+f2 = scipy.interpolate.interp1d(y_L7, u_L7, kind='linear')
+f2_ar = [0, 0, 0, 0, 0, 0, 0]
+f2_d_ar = [0, 0, 0, 0, 0, 0, 0]
+
+# Y values we are saving f2_d at
+f2_d_y = [0, 0, 0, 0, 0, 0, 0]
+# f2_d at those y values
+f2_d_mid = [0, 0, 0, 0, 0, 0, 0]
+
+
+plt.figure()
+for i in range(6):
+
+    f2_ar[i] = f2((np.linspace(y_L7[i], y_L7[i+1], 50)))
+    f2_d_ar[i] = np.gradient(f2_ar[i])
+    f2_d_y[i] = (y_L7[i+1]-y_L7[i])/2
+    f2_d_mid[i] = f2_d_ar[i][24]
+
+f2_dpolyfit = scipy.interpolate.interp1d(f2_d_y, f2_d_mid, kind='linear')
+f2_dpolyfit_ar = [0, 0, 0, 0, 0, 0, 0]
+
+plt.figure()
+for i in range(6):
+
+    f2_dpolyfit_ar[i] = f2_dpolyfit((np.linspace(f2_d_y[i], f2_d_y[i+1], 50)))
+    
+    plt.plot( f2_dpolyfit_ar[i], np.linspace(f2_d_y[i], f2_d_y[i+1], 50))
+
+
+plt.legend()
+plt.grid(True)
+plt.title("")
+save_fig("secondary_L7B")
+plt.show()
+
 
 # if __name__ == '__main__':
 #     main()
