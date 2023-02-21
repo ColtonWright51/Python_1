@@ -11,6 +11,8 @@ from sympy import *
 import os
 import sys
 import hw3
+import scipy
+
 np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize)
 
 # Where to save the figures
@@ -137,37 +139,36 @@ def apply_EBC(K, F, method):
 
 
 
-# import numpy as np
 
-# def interpol(xp, xn, un):
-#     """
-#     Interpolates the quadratic polynomial between the node points.
+def interpol(xp, xn, un):
+    """
+    Interpolates the quadratic polynomial between the node points.
 
-#     Parameters:
-#     xp (array): 1-D array of x-values at which to interpolate.
-#     xn (array): 1-D array of x-coordinates of the nodes.
-#     un (array): 1-D array of y-coordinates of the nodes.
+    Parameters:
+    xp (array): 1-D array of x-values at which to interpolate.
+    xn (array): 1-D array of x-coordinates of the nodes.
+    un (array): 1-D array of y-coordinates of the nodes.
 
-#     Returns:
-#     up (array): 1-D array of interpolated y-values at the points in xp.
-#     dudxp (array): 1-D array of the first derivatives of the quadratic polynomial
-#                    at the points in xp.
-#     """
+    Returns:
+    up (array): 1-D array of interpolated y-values at the points in xp.
+    dudxp (array): 1-D array of the first derivatives of the quadratic polynomial
+                   at the points in xp.
+    """
 
-#     nelm = (len(xn) - 1) // 2
-#     iconn = getConnHO(nelm)  # get connectivity matrix
-#     up = np.zeros(len(xp))
-#     dudxp = np.zeros(len(xp))
+    nelm = (len(xn) - 1) // 2
+    iconn = hw3.getConn(nelm)  # get connectivity matrix
+    up = np.zeros(len(xp))
+    dudxp = np.zeros(len(xp))
 
-#     for i in range(len(xp)):
-#         for ie in range(nelm):
-#             if xp[i] <= xn[iconn[ie, 2]]:
-#                 ln = iconn[ie, 0]
-#                 rn = iconn[ie, 2]
-#                 up[i], dudxp[i] = lagrange(xp[i], xn[ln:rn+1], un[ln:rn+1])
-#                 break
+    for i in range(len(xp)):
+        for ie in range(nelm):
+            if xp[i] <= xn[iconn[ie, 2]]:
+                ln = iconn[ie, 0]
+                rn = iconn[ie, 2]
+                up[i], dudxp[i] = lagrange(xp[i], xn[ln:rn+1], un[ln:rn+1])
+                break
 
-#     return up, dudxp
+    return up, dudxp
 
 
 
@@ -193,6 +194,9 @@ u_s = (2*tau*y_s + dpdx*y_s**2 - 2*dpdx*h*y_s)/(2*mu)
 
 # Interpolate the functions u & u_L7
 y_q7_interp = np.linspace(0,y_q7[2],1000)
+y_q7_interp2 = np.linspace(y_q7[2],y_q7[4],1000)
+y_q7_interp3 = np.linspace(y_q7[4],y_q7[6],1000)
+
 lagr1 = [1, 1, 1]
 for i in range(3):
     for j in range(3):
@@ -202,14 +206,16 @@ for i in range(3):
 u_q7_interp = 0
 for i in range(3):
     u_q7_interp = u_q7_interp + u_q7[i]*lagr1[i]
-
-
+lagr2 = scipy.interpolate.lagrange([y_q7[0], y_q7[1], y_q7[2]], [u_q7[0], u_q7[1], u_q7[2]])
+lagr3 = scipy.interpolate.lagrange([y_q7[2], y_q7[3], y_q7[4]], [u_q7[2], u_q7[3], u_q7[4]])
+print(lagr2)
 plt.figure()
 plt.plot(u_q7,y_q7, 'o', label='u_q7')
-plt.plot(u_q7_interp, y_q7_interp)
+plt.plot(lagr2(y_q7_interp), y_q7_interp, 'g-')
+plt.plot(lagr3(y_q7_interp2), y_q7_interp2, 'g-')
 plt.legend()
 plt.grid(True)
-save_fig("solution")
+save_fig("solution_uq7")
 
 
 plt.figure()
