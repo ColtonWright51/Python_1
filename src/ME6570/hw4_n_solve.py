@@ -66,6 +66,7 @@ for i in range(0, 8): # This indexed through the N's, N1, N2, N3...
 sym.plotting.plot(N[0], N[1], N[2], N[3], N[4], N[5], N[6], N[7], xlim=[-1, 1], ylim=[-1,1])
 
 
+
 # All N_i functions are found for our problem, lets solve for reduced stiffness matrix...
 kelm = [[0 for j in range(n_nodes_per_element)] for i in range(n_nodes_per_element)] # Create 8x8 python list. Don't use numpy array, it is storing sympy funcs
 dxds = h_e/2

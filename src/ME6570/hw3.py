@@ -7,10 +7,12 @@ Solution to John Cotton's HW3 in ME6570
 import numpy as np
 import matplotlib.pyplot as plt
 import os
+import sys
+np.set_printoptions(suppress=True,linewidth=sys.maxsize,threshold=sys.maxsize)
 
 # Where to save the figures
 PROJECT_ROOT_DIR = "."
-IMAGES_PATH = os.path.join(PROJECT_ROOT_DIR, "images", "ME6570", "HW4")
+IMAGES_PATH = os.path.join(PROJECT_ROOT_DIR, "images", "ME6570", "HW3")
 os.makedirs(IMAGES_PATH, exist_ok=True)
 def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
     path = os.path.join(IMAGES_PATH, fig_id + "." + fig_extension)
@@ -22,7 +24,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 
 def solve_couette(mu, dpdx, tau, h, n_nodes):
     n_elements = n_nodes-1
-    h_e = h/n_nodes
+    h_e = h/n_elements
     K = get_kgl(mu, h_e, n_elements)
     F = get_load(h_e, dpdx, tau, n_nodes)
 
@@ -63,7 +65,7 @@ def get_kgl(mu, h_e, n_elements):
                 ii = iconn[e-1,i-1]
                 jj = iconn[e-1,j-1]
                 K[ii-1, jj-1] = K[ii-1, jj-1] + kelm[i-1, j-1]
-    
+    # print(K)
     return K
 
 def getConn(n_elements):
@@ -78,10 +80,10 @@ def getConn(n_elements):
                          number given element number (i) and local node number (j)
     """
 
-    iconn = np.zeros((n_elements+1, 2), dtype=int) # initialize array for speed.
-    for ielem in range(1, n_elements+1):
-        iconn[ielem-1, 0] = ielem
-        iconn[ielem-1, 1] = ielem + 1
+    iconn = np.zeros((n_elements, 2), dtype=int) # initialize array for speed.
+    for ielem in range(n_elements):
+        iconn[ielem, 0] = ielem + 1
+        iconn[ielem, 1] = ielem + 2
     
     return iconn
 
@@ -100,17 +102,16 @@ def get_load(h_e, dpdx, tau, n_nodes):
     """
 
     # set up f1
-    f1 = np.zeros((n_nodes,1))
+    f1 = np.zeros((n_nodes))
     f1[n_nodes-1] = tau
     
     # set up f2
-    f2 = np.ones((n_nodes, 1))
+    f2 = np.ones((n_nodes))
     f2[0] = 1/2
-    f2[n_nodes-1] = 1/2
+    f2[-1] = 1/2
     f2 = -dpdx*h_e*f2
-    
+
     F = f1 + f2
-    
     return F
 
 def apply_EBC(K, F, method):
@@ -164,30 +165,31 @@ def apply_EBC(K, F, method):
 
 
 
-# def main():
+def main():
 
-mu = 0.01
-dpdx = -7
-tau = 0.1
-h = 0.02
-n_nodes = 5
-y, u = solve_couette(mu, dpdx, tau, h, n_nodes)
-y2, u2 = solve_couette(mu, dpdx, tau, h, 50)
+    mu = 0.01
+    dpdx = -7
+    tau = 0.1
+    h = 0.02
+    n_nodes = 5
+    y, u = solve_couette(mu, dpdx, tau, h, n_nodes)
+    y2, u2 = solve_couette(mu, dpdx, tau, h, 50)
 
-# Symbolic solution
-y_s = np.linspace(0, h, 100)
-u_s = (2*tau*y_s + dpdx*y_s**2 - 2*dpdx*h*y_s)/(2*mu)
+    # Symbolic solution
+    y_s = np.linspace(0, h, 100)
+    u_s = (2*tau*y_s + dpdx*y_s**2 - 2*dpdx*h*y_s)/(2*mu)
 
-plt.figure()
-plt.plot(u,y, '-o', label='5 nodes')
-plt.plot(u2, y2, '-o', label='50 nodes')
-plt.plot(u_s, y_s, label='Symbolic')
-plt.legend()
-save_fig("solution")
-plt.show()
+    plt.figure()
+    plt.plot(u,y, '-o', label='5 nodes')
+    plt.plot(u2, y2, '-o', label='50 nodes')
+    plt.plot(u_s, y_s, label='Symbolic')
+    plt.grid(True)
+    plt.legend()
+    save_fig("solution")
+    plt.show()
 
 
 
 
-# if __name__ == '__main__':
-#     main()
+if __name__ == '__main__':
+    main()

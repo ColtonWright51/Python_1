@@ -1,6 +1,6 @@
 """
-hw4.py
-Created by Colton Wright on 2/18/2023
+hw4_try2.py
+Created by Colton Wright on 2/20/2023
 
 Solution to John Cotton's ME6570 HW4
 """
@@ -9,6 +9,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sympy import *
 import os
+import sys
+import hw3
+np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize)
 
 # Where to save the figures
 PROJECT_ROOT_DIR = "."
@@ -21,11 +24,11 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
         plt.tight_layout()
     plt.savefig(path, format=fig_extension, dpi=resolution)
 
+#------------------------------------------------------------------------------
 
-def solve_couette(mu, dpdx, tau, h, n_nodes):
-    n_elements = n_nodes-1
-    h_e = h/n_nodes
-    K = get_kgl(mu, h_e, n_elements)
+def solve_couette(mu, dpdx, tau, h, n_nodes, n_elements):
+    h_e = h/n_elements
+    K = get_kgl(mu, h_e, n_nodes, n_elements)
     F = get_load(h_e, dpdx, tau, n_nodes)
 
     method = 3
@@ -38,7 +41,7 @@ def solve_couette(mu, dpdx, tau, h, n_nodes):
     x = np.linspace(0, h, n_nodes)
     return x, u
 
-def get_kgl(mu, h_e, n_elements):
+def get_kgl(mu, h_e, n_nodes, n_elements):
     """
     Gets the stiffness matrix
     
@@ -51,40 +54,26 @@ def get_kgl(mu, h_e, n_elements):
         K (ndarray): Stiffness matrix
     """
 
-    A = mu/h_e
-    B = -mu/h_e
-    kelm = np.array([[A, B], [B, A]])
+    A = 7*mu/(h_e*3)
+    B = -8*mu/(h_e*3)
+    C = mu/(h_e*3)
+    D = 16*mu/(h_e*3)
+    kelm = np.array([[A, B, C],
+                     [B, D, B],
+                     [C, B, A]])
 
-    iconn = getConn(n_elements) # connectivity matrix (assumed to be defined elsewhere)
+    iconn = np.array([[1, 2, 3],
+                      [3, 4, 5],
+                      [5, 6, 7]])
     
-    K = np.zeros((n_elements+1, n_elements+1)) # preallocate the stiffness matrix
-    for e in range(1, n_elements+1):
-        for i in range(1, 3): # indices i and j local, ii and jj global
-            for j in range(1, 3):
-                ii = iconn[e-1,i-1]
-                jj = iconn[e-1,j-1]
-                K[ii-1, jj-1] = K[ii-1, jj-1] + kelm[i-1, j-1]
-    
+    K = np.zeros((n_nodes, n_nodes)) # preallocate the stiffness matrix
+    for e in range(n_elements):
+        for i in range(3): # indices i and j local, ii and jj global
+            for j in range(3):
+                ii = iconn[e, i]
+                jj = iconn[e, j]
+                K[ii-1, jj-1] = K[ii-1, jj-1] + kelm[i, j]
     return K
-
-def getConn(n_elements):
-    """
-    Gets the connectivity matrix, a fairly standard array in FE codes, for a 1-D problem
-    
-    Parameters:
-        n_elements (int): Number of elements in the 1D problem
-    
-    Returns:
-        iconn (ndarray): The resulting connectivity matrix, which returns the global node
-                         number given element number (i) and local node number (j)
-    """
-
-    iconn = np.zeros((n_elements+1, 2), dtype=int) # initialize array for speed.
-    for ielem in range(1, n_elements+1):
-        iconn[ielem-1, 0] = ielem
-        iconn[ielem-1, 1] = ielem + 1
-    
-    return iconn
 
 def get_load(h_e, dpdx, tau, n_nodes):
     """
@@ -101,17 +90,12 @@ def get_load(h_e, dpdx, tau, n_nodes):
     """
 
     # set up f1
-    f1 = np.zeros((n_nodes,1))
-    f1[n_nodes-1] = tau
+    f1 = np.zeros((n_nodes))
+    f1[-1] = tau
     
     # set up f2
-    f2 = np.ones((n_nodes, 1))
-    f2[0] = 1/2
-    f2[n_nodes-1] = 1/2
-    f2 = -dpdx*h_e*f2
-    
+    f2 = -dpdx*h_e*np.array([1/6, 2/3, 2/6, 2/3, 2/6, 2/3, 1/6])
     F = f1 + f2
-    
     return F
 
 def apply_EBC(K, F, method):
@@ -162,33 +146,54 @@ def apply_EBC(K, F, method):
 
 
 
-
-
-
 # def main():
 
 mu = 0.01
 dpdx = -7
 tau = 0.1
 h = 0.02
-n_nodes = 5
-y, u = solve_couette(mu, dpdx, tau, h, n_nodes)
-y2, u2 = solve_couette(mu, dpdx, tau, h, 50)
+n_nodes = 7
+n_elements = 3
+y_q7, u_q7 = solve_couette(mu, dpdx, tau, h, n_nodes, n_elements)
+y_L7, u_L7 = hw3.solve_couette(mu, dpdx, tau, h, 7)
 
 # Symbolic solution
 y_s = np.linspace(0, h, 100)
 u_s = (2*tau*y_s + dpdx*y_s**2 - 2*dpdx*h*y_s)/(2*mu)
 
+# Interpolate the functions u & u_L7
+y_q7_interp = np.linspace(0,y_q7[2],1000)
+lagr1 = [1, 1, 1]
+for i in range(3):
+    for j in range(3):
+            if i != j: # If i=j, we just skip this loop
+
+                lagr1[i] = lagr1[i] * (y_q7_interp-y_q7[j])/ (y_q7[i]-y_q7[j])
+u_q7_interp = 0
+for i in range(3):
+    u_q7_interp = u_q7_interp + u_q7[i]*lagr1[i]
+
+
 plt.figure()
-plt.plot(u,y, '-o', label='5 nodes')
-plt.plot(u2, y2, '-o', label='50 nodes')
+plt.plot(u_q7,y_q7, 'o', label='u_q7')
+plt.plot(u_q7_interp, y_q7_interp)
+plt.legend()
+plt.grid(True)
+save_fig("solution")
+
+
+plt.figure()
+plt.plot(u_q7,y_q7, 'o', label='u_q7')
+plt.plot(u_L7, y_L7, '-*', label='u_L7')
 plt.plot(u_s, y_s, label='Symbolic')
 plt.legend()
-save_fig("solution")
-plt.show()
+plt.grid(True)
+save_fig("solution_uq_uL_us")
+
+# Part 1 is done. Now for residuals:
 
 
-
+# plt.show()
 
 # if __name__ == '__main__':
 #     main()
