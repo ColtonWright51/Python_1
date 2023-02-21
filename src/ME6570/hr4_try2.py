@@ -137,7 +137,37 @@ def apply_EBC(K, F, method):
 
 
 
+# import numpy as np
 
+# def interpol(xp, xn, un):
+#     """
+#     Interpolates the quadratic polynomial between the node points.
+
+#     Parameters:
+#     xp (array): 1-D array of x-values at which to interpolate.
+#     xn (array): 1-D array of x-coordinates of the nodes.
+#     un (array): 1-D array of y-coordinates of the nodes.
+
+#     Returns:
+#     up (array): 1-D array of interpolated y-values at the points in xp.
+#     dudxp (array): 1-D array of the first derivatives of the quadratic polynomial
+#                    at the points in xp.
+#     """
+
+#     nelm = (len(xn) - 1) // 2
+#     iconn = getConnHO(nelm)  # get connectivity matrix
+#     up = np.zeros(len(xp))
+#     dudxp = np.zeros(len(xp))
+
+#     for i in range(len(xp)):
+#         for ie in range(nelm):
+#             if xp[i] <= xn[iconn[ie, 2]]:
+#                 ln = iconn[ie, 0]
+#                 rn = iconn[ie, 2]
+#                 up[i], dudxp[i] = lagrange(xp[i], xn[ln:rn+1], un[ln:rn+1])
+#                 break
+
+#     return up, dudxp
 
 
 
@@ -191,6 +221,33 @@ plt.grid(True)
 save_fig("solution_uq_uL_us")
 
 # Part 1 is done. Now for residuals:
+y_s7 = np.linspace(0, h, 7)
+u_s7 = (2*tau*y_s7 + dpdx*y_s7**2 - 2*dpdx*h*y_s7)/(2*mu)
+E_q7 = u_s7-u_q7
+E_L7 = u_s7-u_L7
+
+
+plt.figure()
+plt.plot(y_q7,E_q7, 'o', label='E_q7')
+plt.legend()
+plt.grid(True)
+plt.title("Residual of Symbolic and quadratic solutions")
+save_fig("residual_uq7")
+
+plt.figure()
+plt.plot(y_q7,E_L7, 'o', label='E_L7')
+plt.legend()
+plt.grid(True)
+plt.title("Residual of Symbolic and linear solutions")
+save_fig("residuals_uL7")
+
+plt.figure()
+plt.plot(y_q7,E_q7, 'o', label='E_q7')
+plt.plot(y_q7,E_L7, 'o', label='E_L7')
+plt.legend()
+plt.grid(True)
+plt.title("Residual of Symbolic and FEA approximations")
+save_fig("residuals")
 
 
 # plt.show()
