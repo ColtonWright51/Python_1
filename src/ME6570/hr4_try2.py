@@ -13,7 +13,7 @@ import sys
 import hw3
 import scipy
 
-np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize)
+np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize, precision=16)
 
 # Where to save the figures
 PROJECT_ROOT_DIR = "."
@@ -156,120 +156,168 @@ y_q7, u_q7 = solve_couette(mu, dpdx, tau, h, n_nodes, n_elements)
 y_L7, u_L7 = hw3.solve_couette(mu, dpdx, tau, h, 7)
 
 # Symbolic solution
-y_s = np.linspace(0, h, 100)
+y_s = np.linspace(0, h, 1000)
 u_s = (2*tau*y_s + dpdx*y_s**2 - 2*dpdx*h*y_s)/(2*mu)
+u_s_prime = mu*(-1/mu*(-dpdx*y_s+(dpdx*h-tau)))
 
-# Interpolate the functions u & u_L7
-y_q7_interp = np.linspace(0,y_q7[2],1000)
-y_q7_interp2 = np.linspace(y_q7[2],y_q7[4],1000)
-y_q7_interp3 = np.linspace(y_q7[4],y_q7[6],1000)
-
-lagr1 = scipy.interpolate.lagrange([y_q7[0], y_q7[1], y_q7[2]], [u_q7[0], u_q7[1], u_q7[2]])
-lagr2 = scipy.interpolate.lagrange([y_q7[2], y_q7[3], y_q7[4]], [u_q7[2], u_q7[3], u_q7[4]])
-lagr3 = scipy.interpolate.lagrange([y_q7[4], y_q7[5], y_q7[6]], [u_q7[4], u_q7[5], u_q7[6]])
-
-plt.figure()
-plt.plot(u_q7,y_q7, 'o', label='u_q7')
-plt.plot(lagr1(y_q7_interp), y_q7_interp, 'g-', label='Interpolation')
-plt.plot(lagr2(y_q7_interp2), y_q7_interp2, 'g-')
-plt.plot(lagr3(y_q7_interp3), y_q7_interp3, 'g-')
-plt.legend()
-plt.grid(True)
-save_fig("solution_uq7")
-
-
-plt.figure()
-plt.plot(u_q7,y_q7, 'o', label='u_q7')
-plt.plot(u_L7, y_L7, '-*', label='u_L7')
-plt.plot(u_s, y_s, label='Symbolic')
-plt.legend()
-plt.grid(True)
-save_fig("solution_uq_uL_us")
-
-# Part 1 is done. Now for residuals:
 y_s7 = np.linspace(0, h, 7)
 u_s7 = (2*tau*y_s7 + dpdx*y_s7**2 - 2*dpdx*h*y_s7)/(2*mu)
-E_q7 = u_s7-u_q7
-E_L7 = u_s7-u_L7
 
+# Interpolate for the linear fits:
+y1 = np.linspace(y_s7[0], y_s7[1], 1000)
+y2 = np.linspace(y_s7[1], y_s7[2], 1000)
+y3 = np.linspace(y_s7[2], y_s7[3], 1000)
+y4 = np.linspace(y_s7[3], y_s7[4], 1000)
+y5 = np.linspace(y_s7[4], y_s7[5], 1000)
+y6 = np.linspace(y_s7[5], y_s7[6], 1000)
+linear_interp = scipy.interpolate.interp1d(y_L7, u_L7, kind='linear')
+quad_interp = scipy.interpolate.interp1d(y_q7, u_q7, kind='quadratic')
+
+# Symbolic solution to the problem between each set of nodes
+u_s1 = (2*tau*y1 + dpdx*y1**2 - 2*dpdx*h*y1)/(2*mu)
+u_s2 = (2*tau*y2 + dpdx*y2**2 - 2*dpdx*h*y2)/(2*mu)
+u_s3 = (2*tau*y3 + dpdx*y3**2 - 2*dpdx*h*y3)/(2*mu)
+u_s4 = (2*tau*y4 + dpdx*y4**2 - 2*dpdx*h*y4)/(2*mu)
+u_s5 = (2*tau*y5 + dpdx*y5**2 - 2*dpdx*h*y5)/(2*mu)
+u_s6 = (2*tau*y6 + dpdx*y6**2 - 2*dpdx*h*y6)/(2*mu)
 
 plt.figure()
-plt.plot(y_q7,E_q7, 'o', label='E_q7')
-plt.legend()
+plt.plot(y_L7,u_L7, 'co', label='u_L7')
+plt.plot(y1, linear_interp(y1), 'c-', y2, linear_interp(y2), 'c-', y3, linear_interp(y3), 'c-', y4, linear_interp(y4), 'c-', y5, linear_interp(y5), 'c-', y6, linear_interp(y6), 'c-')
 plt.grid(True)
-plt.title("Residual of Symbolic and quadratic solutions")
-save_fig("residual_uq7")
+plt.title("Interpolated u_L7")
+save_fig("interp1d_linear_test")
 
 plt.figure()
-plt.plot(y_q7,E_L7, 'o', label='E_L7')
-plt.legend()
+plt.plot(y_q7,u_q7, 'ro', label='u_Q7')
+plt.plot(y1, quad_interp(y1), 'r-', y2, quad_interp(y2), 'r-', y3, quad_interp(y3), 'r-', y4, quad_interp(y4), 'r-', y5, quad_interp(y5), 'r-', y6, quad_interp(y6), 'r-')
 plt.grid(True)
-plt.title("Residual of Symbolic and linear solutions")
-save_fig("residuals_uL7")
+plt.title("Interpolated u_q7")
+save_fig("interp1d_quad_test")
 
 plt.figure()
-plt.plot(y_q7,E_q7, 'o', label='E_q7')
-plt.plot(y_q7,E_L7, 'o', label='E_L7')
-plt.legend()
+plt.plot(y_L7,u_L7, 'co', label='u_L7')
+plt.plot(y1, linear_interp(y1), 'c-', y2, linear_interp(y2), 'c-', y3, linear_interp(y3), 'c-', y4, linear_interp(y4), 'c-', y5, linear_interp(y5), 'c-', y6, linear_interp(y6), 'c-')
+plt.plot(y_q7,u_q7, 'ro', label='u_Q7')
+plt.plot(y1, quad_interp(y1), 'r-', y2, quad_interp(y2), 'r-', y3, quad_interp(y3), 'r-', y4, quad_interp(y4), 'r-', y5, quad_interp(y5), 'r-', y6, quad_interp(y6), 'r-')
+plt.plot(y_s, u_s, 'g-', label="Exact Solution")
 plt.grid(True)
-plt.title("Residual of Symbolic and FEA approximations")
+plt.legend()
+plt.title("Solutions")
+save_fig("solutions")
+
+# Residual, exact-linear
+EL1 = u_s1 - linear_interp(y1)
+EL2 = u_s2 - linear_interp(y2)
+EL3 = u_s3 - linear_interp(y3)
+EL4 = u_s4 - linear_interp(y4)
+EL5 = u_s5 - linear_interp(y5)
+EL6 = u_s6 - linear_interp(y6)
+
+# Residual, exact-quad
+Eq1 = u_s1 - quad_interp(y1)
+Eq2 = u_s2 - quad_interp(y2)
+Eq3 = u_s3 - quad_interp(y3)
+Eq4 = u_s4 - quad_interp(y4)
+Eq5 = u_s5 - quad_interp(y5)
+Eq6 = u_s6 - quad_interp(y6)
+
+plt.figure()
+plt.plot(y1, EL1, 'c-', y2, EL2, 'c-', y3, EL3, 'c-', y4, EL4, 'c-', y5, EL5, 'c-', y6, EL6, 'c-')
+plt.grid(True)
+plt.title("L7 Residual")
+save_fig("residual_L7")
+
+plt.figure()
+plt.plot(y1, Eq1, 'r-', y2, Eq2, 'r-', y3, Eq3, 'r-', y4, Eq4, 'r-', y5, Eq5, 'r-', y6, Eq6, 'r-')
+plt.grid(True)
+plt.title("L7 Residual")
+save_fig("residual_q7")
+
+plt.figure()
+plt.plot(y1, EL1, 'c-', y2, EL2, 'c-', y3, EL3, 'c-', y4, EL4, 'c-', y5, EL5, 'c-', y6, EL6, 'c-')
+plt.plot(y1, Eq1, 'r-', y2, Eq2, 'r-', y3, Eq3, 'r-', y4, Eq4, 'r-', y5, Eq5, 'r-', y6, Eq6, 'r-')
+plt.grid(True)
+plt.title("FEA Approx. Residuals")
 save_fig("residuals")
 
 # Part 2 done. Now compare secondary variables:
 
-# Part 3A
-f1 = scipy.interpolate.interp1d(y_L7, u_L7, kind='linear')
-f1_ar = [0, 0, 0, 0, 0, 0, 0]
-f1_d_ar = [0, 0, 0, 0, 0, 0, 0]
+u_L7_prime_1 = mu*np.gradient(linear_interp(y1), y1)
+u_L7_prime_2 = mu*np.gradient(linear_interp(y2), y2)
+u_L7_prime_3 = mu*np.gradient(linear_interp(y3), y3)
+u_L7_prime_4 = mu*np.gradient(linear_interp(y4), y4)
+u_L7_prime_5 = mu*np.gradient(linear_interp(y5), y5)
+u_L7_prime_6 = mu*np.gradient(linear_interp(y6), y6)
+
+
 
 plt.figure()
-for i in range(6):
-
-    f1_ar[i] = f1((np.linspace(y_L7[i], y_L7[i+1], 50)))
-    f1_d_ar[i] = np.gradient(f1_ar[i])
-    
-    plt.plot( f1_d_ar[i], np.linspace(y_L7[i], y_L7[i+1], 50))
-
-plt.legend()
+plt.plot(y1, u_L7_prime_1, 'c-', y2, u_L7_prime_2, 'c-', y3, u_L7_prime_3, 'c-', y4, u_L7_prime_4, 'c-', y5, u_L7_prime_5, 'c-', y6, u_L7_prime_6, 'c-')
 plt.grid(True)
-plt.title("")
-save_fig("secondary_L7a")
+plt.title("Derivative of u_L7")
+save_fig("interp1d_linear_prime_test")
 
-# Part 3B
-f2 = scipy.interpolate.interp1d(y_L7, u_L7, kind='linear')
-f2_ar = [0, 0, 0, 0, 0, 0, 0]
-f2_d_ar = [0, 0, 0, 0, 0, 0, 0]
+"""
+For the linear solution, determine the derivative for each element. Assign
+these derivatives to the center of each element, plot those points and perform
+a linear least squares fit. Then find the shear at 0 and 20 m from the
+function generated by the least squares fit.
+"""
+u_L7_prime2_y_val = [y_s7[0], (y_s7[1]+y_s7[2])/2, (y_s7[2]+y_s7[3])/2, (y_s7[3]+y_s7[4])/2, (y_s7[4]+y_s7[5])/2, y_s7[6]]
+u_L7_prime2_u_val = [u_L7_prime_1[0], u_L7_prime_2[0], u_L7_prime_3[0], u_L7_prime_4[0], u_L7_prime_5[0], u_L7_prime_6[0]]
 
-# Y values we are saving f2_d at
-f2_d_y = [0, 0, 0, 0, 0, 0, 0]
-# f2_d at those y values
-f2_d_mid = [0, 0, 0, 0, 0, 0, 0]
-
-
+linear_least_squares = scipy.interpolate.interp1d(u_L7_prime2_y_val, u_L7_prime2_u_val, kind='slinear')
 plt.figure()
-for i in range(6):
-
-    f2_ar[i] = f2((np.linspace(y_L7[i], y_L7[i+1], 50)))
-    f2_d_ar[i] = np.gradient(f2_ar[i])
-    f2_d_y[i] = (y_L7[i+1]-y_L7[i])/2
-    f2_d_mid[i] = f2_d_ar[i][24]
-
-f2_dpolyfit = scipy.interpolate.interp1d(f2_d_y, f2_d_mid, kind='linear')
-f2_dpolyfit_ar = [0, 0, 0, 0, 0, 0, 0]
-
-plt.figure()
-for i in range(6):
-
-    f2_dpolyfit_ar[i] = f2_dpolyfit((np.linspace(f2_d_y[i], f2_d_y[i+1], 50)))
-    
-    plt.plot( f2_dpolyfit_ar[i], np.linspace(f2_d_y[i], f2_d_y[i+1], 50))
-
-
-plt.legend()
+# plt.plot(y2,linear_least_squares(y2))
+plt.plot(u_L7_prime2_y_val, u_L7_prime2_u_val, 'co')
+plt.plot(y1, linear_least_squares(y1), 'c-', y2, linear_least_squares(y2), 'c-', y3, linear_least_squares(y3), 'c-', y4, linear_least_squares(y4), 'c-', y5, linear_least_squares(y5), 'c-', y6, linear_least_squares(y6), 'c-')
+plt.plot(0.00, linear_least_squares(0), 'go', 0.002, linear_least_squares(0.002), 'go')
 plt.grid(True)
-plt.title("")
-save_fig("secondary_L7B")
-plt.show()
+plt.title("Derivative of u_L7, linear least squares")
+save_fig("interp1d_linear_prime_lls_test")
+
+
+
+"""
+From your quadratic solution, use the derivative of the quadratic polynomial
+for the element at that node.
+"""
+u_q7_prime_1 = mu*np.gradient(quad_interp(y1), y1)
+u_q7_prime_2 = mu*np.gradient(quad_interp(y2), y2)
+u_q7_prime_3 = mu*np.gradient(quad_interp(y3), y3)
+u_q7_prime_4 = mu*np.gradient(quad_interp(y4), y4)
+u_q7_prime_5 = mu*np.gradient(quad_interp(y5), y5)
+u_q7_prime_6 = mu*np.gradient(quad_interp(y6), y6)
+
+plt.figure()
+plt.plot(y1, u_q7_prime_1, 'r-', y2, u_q7_prime_2, 'r-', y3, u_q7_prime_3, 'r-', y4, u_q7_prime_4, 'r-', y5, u_q7_prime_5, 'r-', y6, u_q7_prime_6, 'r-')
+plt.grid(True)
+plt.title("Derivative of u_q7")
+save_fig("interp1d_quad_prime_test")
+
+plt.figure()
+# plt.plot(y1, u_L7_prime_1, 'c-', y2, u_L7_prime_2, 'c-', y3, u_L7_prime_3, 'c-', y4, u_L7_prime_4, 'c-', y5, u_L7_prime_5, 'c-', y6, u_L7_prime_6, 'c-')
+plt.plot(y1, linear_least_squares(y1), 'c-', y2, linear_least_squares(y2), 'c-', y3, linear_least_squares(y3), 'c-', y4, linear_least_squares(y4), 'c-', y5, linear_least_squares(y5), 'c-', y6, linear_least_squares(y6), 'c-')
+plt.plot(y1, linear_least_squares(y1), 'c-', label='Linear Least Squares')
+plt.plot(y1, u_q7_prime_1, 'r-', y2, u_q7_prime_2, 'r-', y3, u_q7_prime_3, 'r-', y4, u_q7_prime_4, 'r-', y5, u_q7_prime_5, 'r-', y6, u_q7_prime_6, 'r-')
+plt.plot(y6, u_q7_prime_6, 'r-', label="Quadratic")
+plt.plot(y_s, u_s_prime, 'g-', label='Exact')
+plt.grid(True)
+plt.legend()
+plt.title("Derivative of u_q7 solutions")
+save_fig("shear_stress_solutions")
+
+print("Shear stress at 0 um (linear): ", u_L7_prime_1[0], "[dynes/cm^2]")
+print("Shear stress at 0 um (linear LLS): ", linear_least_squares(0), "[dynes/cm^2]")
+print("Shear stress at 0 um (quadratic): ", u_q7_prime_1[0], "[dynes/cm^2]")
+print("Shear stress at 0 um (exact): ", u_s_prime[0], "[dynes/cm^2]")
+print("Shear stress at 20 um (linear): ", u_L7_prime_1[599], "[dynes/cm^2]")
+print("Shear stress at 20 um (LLS): ", linear_least_squares(0.002), "[dynes/cm^2]")
+print("Shear stress at 20 um (quadratic): ", u_q7_prime_1[599], "[dynes/cm^2]")
+print("Shear stress at 20 um (exact): ", u_s_prime[99], "[dynes/cm^2]")
+
+# plt.show()
 
 
 # if __name__ == '__main__':
