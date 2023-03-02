@@ -29,8 +29,9 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 #------------------------------------------------------------------------------
 
 class ApproxODE:
-    K = np.zeros((10))
 
+    def __init__(self):
+            
 
 
 
