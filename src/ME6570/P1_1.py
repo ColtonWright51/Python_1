@@ -35,14 +35,20 @@ class ApproxODE:
 
 
 
+k= 0.1 # Diffusion coefficient [m^2 s^-1]
+q = 0.1 # Diffusion flux [kg m^-2 s^-1]
+L = 2 # Length of rod
+c1 = 5
+x = np.linspace(0,L,1000)
 
-q, k, x, L, c_bar = symbols("q k x L c_bar")
-c = sympy.Function("c")(x)
-dcdx = sympy.diff(c, x)
 
-eq1 = sympy.Eq(q,  -k*sympy.diff(c, x))
 
-# eqs = [eq1, eq2]
-solution = sympy.solvers.ode.dsolve(eq1)
-sympy.pprint(solution)
+c = -k*q*x+c1 # Concentration [kg m^-2]
 
+plt.figure()
+plt.plot(x, c)
+plt.grid(True)
+
+
+
+plt.show()
