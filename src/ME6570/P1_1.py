@@ -40,7 +40,6 @@ c = sympy.Function("c")(x)
 dcdx = sympy.diff(c, x)
 
 eq1 = sympy.Eq(q,  -k*sympy.diff(c, x))
-eq2 = sympy.Eq(c(L), c_bar)
 
 eqs = [eq1, eq2]
 solution = sympy.solvers.ode.dsolve(eq1)
