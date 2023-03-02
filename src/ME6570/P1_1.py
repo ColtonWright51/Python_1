@@ -31,7 +31,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 class ApproxODE:
 
     def __init__(self):
-            
+            print("Hi")
 
 
 
@@ -42,7 +42,7 @@ dcdx = sympy.diff(c, x)
 
 eq1 = sympy.Eq(q,  -k*sympy.diff(c, x))
 
-eqs = [eq1, eq2]
+# eqs = [eq1, eq2]
 solution = sympy.solvers.ode.dsolve(eq1)
 sympy.pprint(solution)
 
