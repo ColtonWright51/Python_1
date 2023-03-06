@@ -54,6 +54,9 @@ class ApproxODE:
         self.d = np.linalg.solve(self.K,self.F)
         self.v = self.d
         self.x = np.linspace(0, self.L, self.n_nodes)
+        self.g = np.zeros(self.n_nodes)
+        self.g[-1] = self.c_bar
+        self.c = self.v + self.g
 
 
     def get_kgl(self):
@@ -118,10 +121,6 @@ plt.figure()
 plt.plot(x, c)
 plt.grid(True)
 
-
-Approx1 = ApproxODE(.5, .1, .1, 1, 1, 1, 2)
-
-
 print("Runtime:", time.time()-start_timer)
 
 # A, k, Q, L, c_bar, q_bar, n_nodes, n_elements
@@ -131,13 +130,17 @@ Approx2 = ApproxODE(.5, .1, 0, 2, 5, .1, 4, 3)
 Approx2.solve_diffusion()
 Approx3 = ApproxODE(.5, .1, 0, 2, 5, .1, 6, 5)
 Approx3.solve_diffusion()
+Approx4 = ApproxODE(.5, .1, 0, 2, 5, .1, 100, 99)
+Approx4.solve_diffusion()
+Approx5 = ApproxODE(.5, .1, 1, 2, 5, .1, 100, 99)
+Approx5.solve_diffusion()
 
-
-approx_lists = [Approx1, Approx2, Approx3]
+approx_lists = [Approx1, Approx2, Approx3, Approx4, Approx5]
 
 for ap in approx_lists:
     plt.figure()
-    plt.plot(ap.x, ap.v, 'bo')
+    plt.plot(ap.x, ap.c, 'bo')
+    plt.grid(True)
 
 print("Runtime:", time.time()-start_timer)
 plt.show()
