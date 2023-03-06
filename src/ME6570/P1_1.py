@@ -15,8 +15,10 @@ import os
 import sys
 import hw3
 import time
+import time
 np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize, precision=16)
 
+start_timer = time.time()
 start_timer = time.time()
 # Where to save the figures
 PROJECT_ROOT_DIR = "."
@@ -30,6 +32,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
     plt.savefig(path, format=fig_extension, dpi=resolution)
 
 #------------------------------------------------------------------------------
+
 
 class ApproxODE:
 
@@ -116,6 +119,10 @@ plt.plot(x, c)
 plt.grid(True)
 
 
+Approx1 = ApproxODE(.5, .1, .1, 1, 1, 1, 2)
+
+
+print("Runtime:", time.time()-start_timer)
 
 # A, k, Q, L, c_bar, q_bar, n_nodes, n_elements
 Approx1 = ApproxODE(.5, .1, 0, 2, 5, .1, 2, 1)
