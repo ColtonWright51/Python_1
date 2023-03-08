@@ -15,7 +15,6 @@ import os
 import sys
 import hw3
 import time
-import time
 np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize, precision=16)
 
 start_timer = time.time()
@@ -36,7 +35,7 @@ def save_fig(fig_id, tight_layout=True, fig_extension="png", resolution=300):
 
 class ApproxODE:
 
-    def __init__(self, A, k, Q, L, c_bar, q_bar, n_nodes, n_elements):
+    def __init__(self, A, k, Q, L, c_bar, q_bar, n_nodes, n_elements, order_of_approx):
         self.A = A
         self.k = k
         self.Q = Q
@@ -45,10 +44,12 @@ class ApproxODE:
         self.q_bar = q_bar
         self.n_nodes = n_nodes
         self.n_elements = n_elements
+        self.order_of_approx = order_of_approx
 
     def solve_diffusion(self):
         self.h_e = self.L/self.n_elements
         self.K = self.get_kgl()
+        self.K2 = self.get_kgl2()
         self.F = self.get_load()
         self.apply_EBC() # Apply EBC tp K and F
         self.d = np.linalg.solve(self.K,self.F)
@@ -77,8 +78,14 @@ class ApproxODE:
                     ii = iconn[e, i]
                     jj = iconn[e, j]
                     K[ii-1, jj-1] = K[ii-1, jj-1] + Ke[i, j]
-        print("K:", K)
+        # print("K:", K)
         return K
+    
+    def get_kgl2(self):
+        len_N = self.order_of_approx
+        N = []
+        for i in range(self.order_of_approx):
+            print()
 
     def get_load(self):
         m1 = np.zeros(self.n_nodes)
@@ -96,7 +103,7 @@ class ApproxODE:
         return F
 
     def apply_EBC(self):
-        print("HI")
+        # print("HI")
         self.K[-1, :] = 0
         self.K[:, -1] = 0
         self.K[-1, -1] = 1
@@ -121,18 +128,17 @@ plt.figure()
 plt.plot(x, c)
 plt.grid(True)
 
-print("Runtime:", time.time()-start_timer)
 
 # A, k, Q, L, c_bar, q_bar, n_nodes, n_elements
-Approx1 = ApproxODE(.5, .1, 0, 2, 5, .1, 2, 1)
+Approx1 = ApproxODE(.5, .1, 0, 2, 5, .1, 2, 1, 1)
 Approx1.solve_diffusion()
-Approx2 = ApproxODE(.5, .1, 0, 2, 5, .1, 4, 3)
+Approx2 = ApproxODE(.5, .1, 0, 2, 5, .1, 4, 3, 1)
 Approx2.solve_diffusion()
-Approx3 = ApproxODE(.5, .1, 0, 2, 5, .1, 6, 5)
+Approx3 = ApproxODE(.5, .1, 0, 2, 5, .1, 6, 5, 1)
 Approx3.solve_diffusion()
-Approx4 = ApproxODE(.5, .1, 0, 2, 5, .1, 100, 99)
+Approx4 = ApproxODE(.5, .1, 0, 2, 5, .1, 100, 99, 1)
 Approx4.solve_diffusion()
-Approx5 = ApproxODE(.5, .1, 1, 2, 5, .1, 100, 99)
+Approx5 = ApproxODE(.5, .1, 1, 2, 5, .1, 100, 99, 1)
 Approx5.solve_diffusion()
 
 approx_lists = [Approx1, Approx2, Approx3, Approx4, Approx5]
