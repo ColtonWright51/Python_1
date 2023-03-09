@@ -87,7 +87,8 @@ class ApproxODE:
         # print("Parent element functions:", N)
 
         # All N_i functions are found for our problem, lets solve for reduced stiffness matrix...
-        kelm = [[0 for j in range(self.order_of_approx+1)] for i in range(self.order_of_approx+1)] # Create 8x8 python list. Don't use numpy array, it is storing sympy funcs
+        # kelm = [[0 for j in range(self.order_of_approx+1)] for i in range(self.order_of_approx+1)] # Create 8x8 python list. Don't use numpy array, it is storing sympy funcs
+        kelm = np.zeros((self.order_of_approx+1, self.order_of_approx+1))
         dxds = self.h_e/2
 
         for i in range(self.order_of_approx+1):
@@ -99,7 +100,7 @@ class ApproxODE:
 
                 f = self.A*self.k*Ni_prime*Nj_prime*dxds
                 f_int = np.polyint(f)
-                kelm[i][j] = f_int(1) - f_int(-1)
+                kelm[i, j] = f_int(1) - f_int(-1)
         
         # Reduced element stiffness matrix is found, now find whole element matrix
         iconn = self.get_iconn()
@@ -108,7 +109,7 @@ class ApproxODE:
         for e in range(self.n_elements):
             for i in range(self.n_nodes): # indices i and j local, ii and jj global
                 for j in range(self.n_nodes):
-                    print(i)
+                    x=0
 
     def get_parent_functions(self):
         """
@@ -126,17 +127,11 @@ class ApproxODE:
         return N
     
     def get_iconn(self):
-        matrix = []
-        start = 1
-        for i in range(4):
-            row = []
-            for j in range(3):
-                row.append(start+j*2)
-            matrix.append(row)
-            if i % 2 == 0:
-                start = row[-1] + 2
-            else:
-                start = row[-1] + 3
+        matrix = np.zeros((self.n_elements, self.order_of_approx+1))
+        start = 0
+        for i in range(self.n_elements):
+            matrix[i, :] = np.arange(start, start+self.order_of_approx+1)
+            start = start + self.order_of_approx
         return matrix
 
     def get_load(self):
