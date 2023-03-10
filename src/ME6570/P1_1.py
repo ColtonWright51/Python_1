@@ -45,9 +45,18 @@ class ApproxODE:
 
     def solve_diffusion(self):
         self.h_e = self.L/self.n_elements
-        self.K = self.get_kgl2()
-        self.F = self.get_load2()
-        self.F = self.get_load(); print("F2:", self.F)
+        
+        self.K = self.get_kgl()
+        self.K2 = self.get_kgl2()
+        print("h_e:", self.h_e)
+        print("K:", self.K)
+        print("K2:", self.K2)
+
+        self.F = self.get_load()
+        self.F2 = self.get_load2()
+        
+        print("F:", self.F)
+        print("F2:", self.F2)
         # print("F2:", self.F2)
         # self.load_test()
         self.apply_EBC() # Apply EBC to K and F
@@ -57,7 +66,27 @@ class ApproxODE:
         # self.g = np.zeros(self.n_nodes)
         # self.g[-1] = self.c_bar
         # self.c = self.v + self.g
+    def get_kgl(self):
 
+        A = self.A*self.k/2/self.h_e*self.L
+        B = -self.A*self.k/2/self.h_e*self.L
+        print("K1 A:", A); print("K1 B:", B)
+
+        Ke = np.array([[A, B], 
+                       [B, A]])
+
+        iconn = np.arange(1, self.n_nodes+1)
+        iconn = np.lib.stride_tricks.sliding_window_view(iconn, 2)
+
+        K = np.zeros((self.n_nodes, self.n_nodes)) # preallocate the stiffness matrix
+        for e in range(self.n_elements):
+            for i in range(2): # indices i and j local, ii and jj global
+                for j in range(2):
+                    ii = iconn[e, i]
+                    jj = iconn[e, j]
+                    K[ii-1, jj-1] = K[ii-1, jj-1] + Ke[i, j]
+        # print("K:", K)
+        return K
 
     def get_kgl2(self):
 
@@ -66,14 +95,18 @@ class ApproxODE:
         # All N_i functions are found for our problem, lets solve for reduced stiffness matrix...
         # kelm = [[0 for j in range(self.order_of_approx+1)] for i in range(self.order_of_approx+1)] # Create 8x8 python list. Don't use numpy array, it is storing sympy funcs
         kelm = np.zeros((self.order_of_approx+1, self.order_of_approx+1))
-        dxds = self.h_e/2
+        dxds = self.h_e/2 # dx/ds
+        dsdx = 2/self.h_e # ds/dx
 
         for i in range(self.order_of_approx+1):
             for j in range(self.order_of_approx+1):
                 
                 # Calculate each element of the reduced element stiffness matrix:
-                Ni_prime = np.polyder(N[i])
-                Nj_prime = np.polyder(N[j])
+                print("N_" + str(i) + ":", N[i])
+                Ni_prime = np.polyder(N[i])*dsdx # dsdx must be here. the polynomial here is a function of s, need this to be a function of x.
+                print("N_" + str(i) + "':", Ni_prime)
+                Nj_prime = np.polyder(N[j])*dsdx
+                print("N_" + str(j) + "':", Nj_prime)
 
                 f = self.A*self.k*Ni_prime*Nj_prime*dxds
                 f_int = np.polyint(f)
@@ -81,7 +114,7 @@ class ApproxODE:
         
         # Reduced element stiffness matrix is found, now find whole element matrix
         iconn = self.get_iconn()
-        print(iconn)
+        # print(iconn)
         K = np.zeros((self.n_nodes, self.n_nodes))
         for e in range(self.n_elements):
             for i in range(self.order_of_approx+1): # indices i and j local, ii and jj global
@@ -90,7 +123,7 @@ class ApproxODE:
                     ii = iconn[e,i]
                     jj = iconn[e,j]
                     K[ii, jj] = K[ii, jj] + kelm[i, j]
-                    print(K)
+                    # print(K)
         return K
 
     def get_parent_functions(self):
@@ -137,7 +170,9 @@ class ApproxODE:
         f2elm = np.zeros(self.order_of_approx+1)
         f3elm = np.zeros(self.order_of_approx+1)
         N = self.get_parent_functions()
-        dxds = self.h_e/2
+        dxds = self.h_e/2 # dx/ds
+        dsdx = 2/self.h_e # ds/dx
+
 
         f1elm[0] = 1
         f1elm = self.A*self.q_bar*f1elm
@@ -145,18 +180,20 @@ class ApproxODE:
         for i in range(self.order_of_approx+1):
             f2_toint = np.polyint(N[i]*dxds)
             f2elm[i] = f2_toint(1) - f2_toint(-1)
-            f3_toint = np.polyint(N[i]*np.polyder(N[-1])*dxds)
+
+            Nn_prime = np.polyder(N[-1])*dsdx # dsdx must be here. the polynomial here is a function of s, need this to be a function of x.
+            f3_toint = np.polyint(N[i]*Nn_prime*dxds)
             f3elm[i] = f3_toint(1) - f3_toint(-1)
         f2elm = self.Q*f2elm
         f3elm = -self.A*self.k*self.c_bar*f3elm
-        print("f1elm:",f1elm);print("f2elm:",f2elm);print("f3elm:",f3elm)
+        # print("f1elm:",f1elm);print("f2elm:",f2elm);print("f3elm:",f3elm)
         Felm = f1elm+f2elm+f3elm
         iconn = self.get_iconn()
         for e in range(self.n_elements):
             for i in range(self.order_of_approx+1): # indices i and j local, ii and jj global
                     ii = iconn[e,i]
                     F[ii] = F[ii] + Felm[i]
-                    print(F)
+                    # print(F)
 
         return F
 
