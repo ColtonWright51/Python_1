@@ -107,9 +107,14 @@ class ApproxODE:
         print(iconn)
         K = np.zeros((self.n_nodes, self.n_nodes))
         for e in range(self.n_elements):
-            for i in range(self.n_nodes): # indices i and j local, ii and jj global
-                for j in range(self.n_nodes):
-                    x=0
+            for i in range(self.order_of_approx+1): # indices i and j local, ii and jj global
+                for j in range(self.order_of_approx+1):
+                               
+                    ii = iconn[e,i]
+                    jj = iconn[e,j]
+                    # print("jj: ", jj)
+                    K[ii, jj] = K[ii, jj] + kelm[i, j]
+                    print(K)
 
     def get_parent_functions(self):
         """
@@ -127,10 +132,10 @@ class ApproxODE:
         return N
     
     def get_iconn(self):
-        matrix = np.zeros((self.n_elements, self.order_of_approx+1))
+        matrix = np.zeros((self.n_elements, self.order_of_approx+1), dtype='i')
         start = 0
         for i in range(self.n_elements):
-            matrix[i, :] = np.arange(start, start+self.order_of_approx+1)
+            matrix[i, :] = np.arange(start, start+self.order_of_approx+1, dtype='i')
             start = start + self.order_of_approx
         return matrix
 
