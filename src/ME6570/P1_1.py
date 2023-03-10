@@ -9,11 +9,8 @@ First program for John Cotton's Project 1 in ME6570
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
-import sympy
-from sympy import symbols
 import os
 import sys
-import hw3
 import time
 np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize, precision=3)
 
@@ -50,10 +47,10 @@ class ApproxODE:
         self.h_e = self.L/self.n_elements
         self.K = self.get_kgl2()
         self.F = self.get_load2()
-        # self.F2 = self.get_load()
+        self.F = self.get_load(); print("F2:", self.F)
         # print("F2:", self.F2)
         # self.load_test()
-        # self.apply_EBC() # Apply EBC to K and F
+        self.apply_EBC() # Apply EBC to K and F
         self.d = np.linalg.solve(self.K,self.F)
         self.v = self.d
         self.x = np.linspace(0, self.L, self.n_nodes)
