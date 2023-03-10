@@ -15,7 +15,7 @@ import os
 import sys
 import hw3
 import time
-np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize, precision=16)
+np.set_printoptions(linewidth=sys.maxsize,threshold=sys.maxsize, precision=3)
 
 start_timer = time.time()
 start_timer = time.time()
@@ -49,42 +49,22 @@ class ApproxODE:
     def solve_diffusion(self):
         self.h_e = self.L/self.n_elements
         self.K = self.get_kgl2()
-        # self.K2 = self.get_kgl2()
-        # self.F = self.get_load()
-        # self.apply_EBC() # Apply EBC tp K and F
-        # self.d = np.linalg.solve(self.K,self.F)
-        # self.v = self.d
-        # self.x = np.linspace(0, self.L, self.n_nodes)
+        self.F = self.get_load2()
+        # self.F2 = self.get_load()
+        # print("F2:", self.F2)
+        # self.load_test()
+        # self.apply_EBC() # Apply EBC to K and F
+        self.d = np.linalg.solve(self.K,self.F)
+        self.v = self.d
+        self.x = np.linspace(0, self.L, self.n_nodes)
         # self.g = np.zeros(self.n_nodes)
         # self.g[-1] = self.c_bar
         # self.c = self.v + self.g
 
 
-    # def get_kgl(self):
-        
-    #     A = self.A*self.k/2/self.h_e
-    #     B = -self.A*self.k/2/self.h_e
-
-    #     Ke = np.array([[A, B], 
-    #                    [B, A]])
-        
-    #     iconn = np.arange(1, self.n_nodes+1)
-    #     iconn = np.lib.stride_tricks.sliding_window_view(iconn, 2)
-        
-    #     K = np.zeros((self.n_nodes, self.n_nodes)) # preallocate the stiffness matrix
-    #     for e in range(self.n_elements):
-    #         for i in range(2): # indices i and j local, ii and jj global
-    #             for j in range(2):
-    #                 ii = iconn[e, i]
-    #                 jj = iconn[e, j]
-    #                 K[ii-1, jj-1] = K[ii-1, jj-1] + Ke[i, j]
-    #     # print("K:", K)
-    #     return K
-    
     def get_kgl2(self):
 
         N = self.get_parent_functions()
-        # print("Parent element functions:", N)
 
         # All N_i functions are found for our problem, lets solve for reduced stiffness matrix...
         # kelm = [[0 for j in range(self.order_of_approx+1)] for i in range(self.order_of_approx+1)] # Create 8x8 python list. Don't use numpy array, it is storing sympy funcs
@@ -112,9 +92,9 @@ class ApproxODE:
                                
                     ii = iconn[e,i]
                     jj = iconn[e,j]
-                    # print("jj: ", jj)
                     K[ii, jj] = K[ii, jj] + kelm[i, j]
                     print(K)
+        return K
 
     def get_parent_functions(self):
         """
@@ -151,11 +131,46 @@ class ApproxODE:
         m3[-1] = self.c_bar/4*(self.L*self.h_e+.5*self.L*self.h_e**2)
         f3 = -self.A*self.k*m3
         F = f1+f2+f3
-        # print("F:", F)
         return F
 
+    def get_load2(self):
+        F = np.zeros(self.n_nodes)
+        Felm = np.zeros(self.order_of_approx+1)
+        f1elm = np.zeros(self.order_of_approx+1)
+        f2elm = np.zeros(self.order_of_approx+1)
+        f3elm = np.zeros(self.order_of_approx+1)
+        N = self.get_parent_functions()
+        dxds = self.h_e/2
+
+        f1elm[0] = 1
+        f1elm = self.A*self.q_bar*f1elm
+
+        for i in range(self.order_of_approx+1):
+            f2_toint = np.polyint(N[i]*dxds)
+            f2elm[i] = f2_toint(1) - f2_toint(-1)
+            f3_toint = np.polyint(N[i]*np.polyder(N[-1])*dxds)
+            f3elm[i] = f3_toint(1) - f3_toint(-1)
+        f2elm = self.Q*f2elm
+        f3elm = -self.A*self.k*self.c_bar*f3elm
+        print("f1elm:",f1elm);print("f2elm:",f2elm);print("f3elm:",f3elm)
+        Felm = f1elm+f2elm+f3elm
+        iconn = self.get_iconn()
+        for e in range(self.n_elements):
+            for i in range(self.order_of_approx+1): # indices i and j local, ii and jj global
+                    ii = iconn[e,i]
+                    F[ii] = F[ii] + Felm[i]
+                    print(F)
+
+        return F
+
+    def load_test(self):
+        N = self.get_parent_functions()
+        for i in range(len(N)):
+            f_int = np.polyint(N[i])
+            f_int= f_int(1) - f_int(-1)
+
+
     def apply_EBC(self):
-        # print("HI")
         self.K[-1, :] = 0
         self.K[:, -1] = 0
         self.K[-1, -1] = 1
@@ -181,25 +196,29 @@ plt.plot(x, c)
 plt.grid(True)
 
 
-# A, k, Q, L, c_bar, q_bar, n_nodes, n_elements
-Approx1 = ApproxODE(.5, .1, 0, 2, 5, .1, 6, 2, 2)
+# A, k, Q, L, c_bar, q_bar, n_nodes, n_elements, order_of_approx
+
+Approx1 = ApproxODE(.5, .1, 0, 2, 5, .1, 5, 4, 1)
 Approx1.solve_diffusion()
-# Approx2 = ApproxODE(.5, .1, 0, 2, 5, .1, 4, 3, 1)
+# Approx2 = ApproxODE(.5, .1, 0, 2, 5, .1, 5, 2, 2)
 # Approx2.solve_diffusion()
-# Approx3 = ApproxODE(.5, .1, 0, 2, 5, .1, 6, 5, 1)
+# Approx3 = ApproxODE(.5, .1, 0, 2, 5, .1, 5, 1, 4)
 # Approx3.solve_diffusion()
+Approx4 = ApproxODE(.5, .1, 0, 2, 5, .1, 6, 5, 1)
+Approx4.solve_diffusion()
 # Approx4 = ApproxODE(.5, .1, 0, 2, 5, .1, 100, 99, 1)
 # Approx4.solve_diffusion()
-# Approx5 = ApproxODE(.5, .1, 1, 2, 5, .1, 100, 99, 1)
-# Approx5.solve_diffusion()
+Approx5 = ApproxODE(.5, .1, 0, 2, 5, .1, 7, 6, 1)
+Approx5.solve_diffusion()
 
-# approx_lists = [Approx1, Approx2, Approx3, Approx4, Approx5]
+# approx_lists = [Approx1, Approx2, Approx3, Approx4]
+approx_lists = [Approx1, Approx4, Approx5]
 
-# for ap in approx_lists:
-#     plt.figure()
-#     plt.plot(ap.x, ap.c, 'bo')
-#     plt.grid(True)
+for ap in approx_lists:
+    plt.figure()
+    plt.plot(ap.x, ap.v, 'b')
+    plt.grid(True)
 
 print("Runtime:", time.time()-start_timer)
-# plt.show()
+plt.show()
 
