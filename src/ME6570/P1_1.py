@@ -75,6 +75,7 @@ class ApproxODE:
         self.g[-1] = self.c_bar
         # self.c = self.v + self.g
         self.c2 = self.v2 + self.g
+
     def get_kgl(self):
 
         A = self.A*self.k/2/self.h_e*self.L
@@ -173,45 +174,6 @@ class ApproxODE:
         F = f1elm+f2elm+f3elm
         return F
 
-    # def get_load2(self):
-    #     F = np.zeros(self.n_nodes)
-    #     Felm = np.zeros(self.order_of_approx+1)
-    #     # f1elm = np.zeros(self.order_of_approx+1)
-    #     f2elm = np.zeros(self.order_of_approx+1)
-    #     f3elm = np.zeros(self.order_of_approx+1)
-    #     N = self.get_parent_functions()
-    #     dxds = self.h_e/2 # dx/ds
-    #     dsdx = 2/self.h_e # ds/dx
-
-
-    #     # f1elm[0] = 1
-    #     # f1elm = self.A*self.q_bar*f1elm
-    #     # print("N:\,",N);print("N[-1]:",N[-1])
-
-    #     for i in range(self.order_of_approx+1):
-    #         f2_toint = np.polyint(N[i]*dxds)
-    #         f2elm[i] = self.Q*(f2_toint(1) - f2_toint(-1))
-
-    #         Nn_prime = np.polyder(N[-1])*dsdx # dsdx must be here. the polynomial here is a function of s, need this to be a function of x.
-    #         f3_toint = np.polyint(N[i]*Nn_prime*dxds)
-    #         f3elm[i] = f3_toint(1) - f3_toint(-1)
-    #         print("Nn_prime:",Nn_prime);print("f3_toint:",f3_toint);print("f3elm[i]",f3elm[i])
-    #     f2elm = self.Q*f2elm
-    #     f3elm = -self.A*self.k*self.c_bar*f3elm
-    #     print("f2elm_2:",f2elm);print("f3elm_2:",f3elm)
-    #     Felm = +f2elm+f3elm
-    #     iconn = self.get_iconn()
-    #     for e in range(self.n_elements):
-    #         for i in range(self.order_of_approx+1): # indices i and j local, ii and jj global
-    #                 ii = iconn[e,i]
-    #                 F[ii] = F[ii] + Felm[i]
-    #                 # print(F)
-    #     f1 = np.zeros(self.n_nodes)
-    #     f1[0] = 1
-    #     f1 = self.A*self.q_bar*f1
-    #     F = f1+F
-    #     return F
-    
     def get_load2(self, K):
         F = np.zeros(self.n_nodes)
         f1 = np.zeros(self.n_nodes)
@@ -228,12 +190,6 @@ class ApproxODE:
             f2_toint = np.polyint(N[i]*dxds)
             f2elm[i] = self.Q*(f2_toint(1) - f2_toint(-1))
 
-            # Nn_prime = np.polyder(N[-1])*dsdx # dsdx must be here. the polynomial here is a function of s, need this to be a function of x.
-            # f3_toint = np.polyint(N[i]*Nn_prime*dxds)
-            # f3elm[i] = f3_toint(1) - f3_toint(-1)
-            # print("Nn_prime:",Nn_prime);print("f3_toint:",f3_toint);print("f3elm[i]",f3elm[i])
-        # f3elm = -self.A*self.k*self.c_bar*f3elm
-        # print("f2elm_2:",f2elm)
         iconn = self.get_iconn()
         for e in range(self.n_elements):
             for i in range(self.order_of_approx+1): # indices i and j local, ii and jj global
@@ -243,10 +199,6 @@ class ApproxODE:
 
         f3 = -self.c_bar*K[:, -1] # Defined in report. Last term is just last column of stiffness matrix
 
-        # print("get_load2")
-        # print("f1:", f1)
-        # print("f2:", f2)
-        # print("f3:", f3)
         F = f1+f2+f3
         return F
 
@@ -264,12 +216,8 @@ class ApproxODE:
         F[-1] = 0
 
         return K, F
-        # print("K:", self.K)
-        # print("F:", self.F)
-
         # This will force d(I)=0, then v=sum d_i*psi_i. I is the node that 
         # the EBC is located at
-
 
 
 A = 0.25
