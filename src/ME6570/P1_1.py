@@ -45,31 +45,36 @@ class ApproxODE:
 
     def solve_diffusion(self):
         self.h_e = self.L/self.n_elements
-        print("h_e:", self.h_e)
-        self.K = self.get_kgl()
-        self.K2 = self.get_kgl2()
+        # print("h_e:", self.h_e)
+        self.K = self.get_kgl() # Works for 1st degree approx
+        self.K2 = self.get_kgl2() # Works for n degree approx
         
-        print("K:\n", self.K)
-        print("K2:\n", self.K2)
+        # print("K:\n", self.K)
+        # print("K2:\n", self.K2)
 
         self.F = self.get_load()
-        self.F2 = self.get_load2()
+        self.F2 = self.get_load2(self.K2)
         
-        print("F:\n", self.F)
-        print("F2:\n", self.F2)
+        # print("F:\n", self.F)
+        # print("F2:\n", self.F2)
         # self.load_test()
+        self.K, self.F = self.apply_EBC(self.K, self.F) # Apply EBC to K and F
         self.K2, self.F2 = self.apply_EBC(self.K2, self.F2) # Apply EBC to K and F
-        print("K2:\n", self.K2); print("F2:\n", self.F2)
+        # print("K2 after EBC:\n", self.K2); print("F2 after EBC:\n", self.F2)
 
-
-        self.d = np.linalg.solve(self.K2,self.F2)
-        self.v = self.d
+        # self.d = np.linalg.solve(self.K,self.F)
+        # self.v = self.d
         self.x = np.linspace(0, self.L, self.n_nodes)
 
-        print("\n\n\n")
-        # self.g = np.zeros(self.n_nodes)
-        # self.g[-1] = self.c_bar
+        self.d2 = np.linalg.solve(self.K2,self.F2)
+        self.v2 = self.d2
+        self.x2 = np.linspace(0, self.L, self.n_nodes)
+
+        # print("\n\n\n")
+        self.g = np.zeros(self.n_nodes)
+        self.g[-1] = self.c_bar
         # self.c = self.v + self.g
+        self.c2 = self.v2 + self.g
     def get_kgl(self):
 
         A = self.A*self.k/2/self.h_e*self.L
@@ -164,47 +169,85 @@ class ApproxODE:
         m3 = np.zeros(self.n_nodes)
         m3[-1] = self.c_bar/4*(self.L*self.h_e+.5*self.L*self.h_e**2)
         f3elm = -self.A*self.k*m3
-        print("f1elm:",f1elm);print("f2elm:",f2elm);print("f3elm:",f3elm)
+        # print("f1elm:",f1elm);print("f2elm:",f2elm);print("f3elm:",f3elm)
         F = f1elm+f2elm+f3elm
         return F
 
-    def get_load2(self):
+    # def get_load2(self):
+    #     F = np.zeros(self.n_nodes)
+    #     Felm = np.zeros(self.order_of_approx+1)
+    #     # f1elm = np.zeros(self.order_of_approx+1)
+    #     f2elm = np.zeros(self.order_of_approx+1)
+    #     f3elm = np.zeros(self.order_of_approx+1)
+    #     N = self.get_parent_functions()
+    #     dxds = self.h_e/2 # dx/ds
+    #     dsdx = 2/self.h_e # ds/dx
+
+
+    #     # f1elm[0] = 1
+    #     # f1elm = self.A*self.q_bar*f1elm
+    #     # print("N:\,",N);print("N[-1]:",N[-1])
+
+    #     for i in range(self.order_of_approx+1):
+    #         f2_toint = np.polyint(N[i]*dxds)
+    #         f2elm[i] = self.Q*(f2_toint(1) - f2_toint(-1))
+
+    #         Nn_prime = np.polyder(N[-1])*dsdx # dsdx must be here. the polynomial here is a function of s, need this to be a function of x.
+    #         f3_toint = np.polyint(N[i]*Nn_prime*dxds)
+    #         f3elm[i] = f3_toint(1) - f3_toint(-1)
+    #         print("Nn_prime:",Nn_prime);print("f3_toint:",f3_toint);print("f3elm[i]",f3elm[i])
+    #     f2elm = self.Q*f2elm
+    #     f3elm = -self.A*self.k*self.c_bar*f3elm
+    #     print("f2elm_2:",f2elm);print("f3elm_2:",f3elm)
+    #     Felm = +f2elm+f3elm
+    #     iconn = self.get_iconn()
+    #     for e in range(self.n_elements):
+    #         for i in range(self.order_of_approx+1): # indices i and j local, ii and jj global
+    #                 ii = iconn[e,i]
+    #                 F[ii] = F[ii] + Felm[i]
+    #                 # print(F)
+    #     f1 = np.zeros(self.n_nodes)
+    #     f1[0] = 1
+    #     f1 = self.A*self.q_bar*f1
+    #     F = f1+F
+    #     return F
+    
+    def get_load2(self, K):
         F = np.zeros(self.n_nodes)
-        Felm = np.zeros(self.order_of_approx+1)
-        # f1elm = np.zeros(self.order_of_approx+1)
+        f1 = np.zeros(self.n_nodes)
+        f2 = np.zeros(self.n_nodes)
         f2elm = np.zeros(self.order_of_approx+1)
-        f3elm = np.zeros(self.order_of_approx+1)
         N = self.get_parent_functions()
         dxds = self.h_e/2 # dx/ds
         dsdx = 2/self.h_e # ds/dx
 
-
-        # f1elm[0] = 1
-        # f1elm = self.A*self.q_bar*f1elm
-        # print("N:\,",N);print("N[-1]:",N[-1])
+        f1[0] = 1
+        f1 = self.A*self.q_bar*f1
 
         for i in range(self.order_of_approx+1):
             f2_toint = np.polyint(N[i]*dxds)
             f2elm[i] = self.Q*(f2_toint(1) - f2_toint(-1))
 
-            Nn_prime = np.polyder(N[-1])*dsdx # dsdx must be here. the polynomial here is a function of s, need this to be a function of x.
-            f3_toint = np.polyint(N[i]*Nn_prime*dxds)
-            f3elm[i] = f3_toint(1) - f3_toint(-1)
-            print("Nn_prime:",Nn_prime);print("f3_toint:",f3_toint);print("f3elm[i]",f3elm[i])
-        f2elm = self.Q*f2elm
-        f3elm = -self.A*self.k*self.c_bar*f3elm
-        print("f2elm_2:",f2elm);print("f3elm_2:",f3elm)
-        Felm = +f2elm+f3elm
+            # Nn_prime = np.polyder(N[-1])*dsdx # dsdx must be here. the polynomial here is a function of s, need this to be a function of x.
+            # f3_toint = np.polyint(N[i]*Nn_prime*dxds)
+            # f3elm[i] = f3_toint(1) - f3_toint(-1)
+            # print("Nn_prime:",Nn_prime);print("f3_toint:",f3_toint);print("f3elm[i]",f3elm[i])
+        # f3elm = -self.A*self.k*self.c_bar*f3elm
+        # print("f2elm_2:",f2elm)
         iconn = self.get_iconn()
         for e in range(self.n_elements):
             for i in range(self.order_of_approx+1): # indices i and j local, ii and jj global
                     ii = iconn[e,i]
-                    F[ii] = F[ii] + Felm[i]
-                    # print(F)
-        f1 = np.zeros(self.n_nodes)
-        f1[0] = 1
-        f1 = self.A*self.q_bar*f1
-        F = f1+F
+                    f2[ii] = f2[ii] + f2elm[i]
+    
+
+        f3 = -self.c_bar*K[:, -1] # Defined in report. Last term is just last column of stiffness matrix
+
+        # print("get_load2")
+        # print("f1:", f1)
+        # print("f2:", f2)
+        # print("f3:", f3)
+        F = f1+f2+f3
         return F
 
     def load_test(self):
@@ -229,38 +272,49 @@ class ApproxODE:
 
 
 
+A = 0.25
+k = 0.1 # Diffusion coefficient [m^2 s^-1]
+Q = 0.11
+L = 1 # Length of rod
+c_bar = 5 # Concentration [kg m^-2]
+q_bar = 0.1 # Diffusion flux [kg m^-2 s^-1]
 
 
-k= 0.1 # Diffusion coefficient [m^2 s^-1]
-q = 0.1 # Diffusion flux [kg m^-2 s^-1]
-L = 2 # Length of rod
-c1 = 5
 x = np.linspace(0,L,1000)
-c = -k*q*x+c1 # Concentration [kg m^-2]
+# c = q_bar/k*L + Q*L**2/2 + c_bar - q_bar/k*x - Q/2/A/k*x**2
+c = -Q/2/A/k*x**2 - q_bar/k*x
+raise1 = c_bar-c[-1] # Enforce EBC
+print("raise:", raise1)
+c = c + raise1
 plt.figure()
-plt.plot(x, c)
+plt.plot(x, c, 'b')
 plt.grid(True)
 
 
 # A, k, Q, L, c_bar, q_bar, n_nodes, n_elements, order_of_approx
 
-a1 = ApproxODE(.5, .1, 0, 2, 5, .1, 5, 4, 1)
+a1 = ApproxODE(A, k, Q, L, c_bar, q_bar, 5, 4, 1)
 a1.solve_diffusion()
-a2 = ApproxODE(.5, .1, 0, 2, 5, .1, 6, 5, 1)
+a2 = ApproxODE(A, k, Q, L, c_bar, q_bar, 6, 5, 1)
 a2.solve_diffusion()
-a3 = ApproxODE(.5, .1, 0, 2, 5, .1, 7, 6, 1)
+a3 = ApproxODE(A, k, Q, L, c_bar, q_bar, 7, 6, 1)
 a3.solve_diffusion()
-a4 = ApproxODE(.5, .1, 0, 2, 5, .1, 10, 9, 1)
+a4 = ApproxODE(A, k, Q, L, c_bar, q_bar, 10, 9, 1)
 a4.solve_diffusion()
-a5 = ApproxODE(.5, .1, 0, 2, 5, .1, 11, 5, 2)
-a5.solve_diffusion()
+# a5 = ApproxODE(A, k, Q, L, c_bar, q_bar, 11, 5, 2)
+# a5.solve_diffusion()
+# a6 = ApproxODE(A, k, Q, L, c_bar, q_bar, 7, 1, 6)
+# a6.solve_diffusion()
 
 # approx_lists = [Approx1, Approx2, Approx3, Approx4]
 approx_lists = [a1, a2, a3, a4]
 
 for ap in approx_lists:
     plt.figure()
-    plt.plot(ap.x, ap.v, 'b')
+    plt.title("Approximation")
+    # plt.plot(ap.x, ap.v, 'b') # Looks wrong at last node!
+    # plt.plot(ap.x, ap.c, 'b')
+    plt.plot(ap.x, ap.c2, 'r')
     plt.grid(True)
 
 print("Runtime:", time.time()-start_timer)
