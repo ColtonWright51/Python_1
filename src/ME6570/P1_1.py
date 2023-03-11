@@ -287,35 +287,101 @@ raise1 = c_bar-c[-1] # Enforce EBC
 print("raise:", raise1)
 c = c + raise1
 plt.figure()
+plt.title("Exact Solution")
 plt.plot(x, c, 'b')
 plt.grid(True)
 
 
 # A, k, Q, L, c_bar, q_bar, n_nodes, n_elements, order_of_approx
+L1 = ApproxODE(A, k, Q, L, c_bar, q_bar, 2, 1, 1)
+L1.solve_diffusion()
+L2 = ApproxODE(A, k, Q, L, c_bar, q_bar, 5, 4, 1)
+L2.solve_diffusion()
+L3 = ApproxODE(A, k, Q, L, c_bar, q_bar, 100, 99, 1)
+L3.solve_diffusion()
+L4 = ApproxODE(A, k, Q, L, c_bar, q_bar, 1000, 999, 1)
+L4.solve_diffusion()
+linear_list = [L1, L2, L3, L4]
 
-a1 = ApproxODE(A, k, Q, L, c_bar, q_bar, 5, 4, 1)
-a1.solve_diffusion()
-a2 = ApproxODE(A, k, Q, L, c_bar, q_bar, 6, 5, 1)
-a2.solve_diffusion()
-a3 = ApproxODE(A, k, Q, L, c_bar, q_bar, 7, 6, 1)
-a3.solve_diffusion()
-a4 = ApproxODE(A, k, Q, L, c_bar, q_bar, 10, 9, 1)
-a4.solve_diffusion()
-# a5 = ApproxODE(A, k, Q, L, c_bar, q_bar, 11, 5, 2)
-# a5.solve_diffusion()
-# a6 = ApproxODE(A, k, Q, L, c_bar, q_bar, 7, 1, 6)
-# a6.solve_diffusion()
-
-# approx_lists = [Approx1, Approx2, Approx3, Approx4]
-approx_lists = [a1, a2, a3, a4]
-
-for ap in approx_lists:
+counter = 1
+for approx in linear_list:
+    interpolation = scipy.interpolate.interp1d(approx.x, approx.c2, kind="linear")
+    print(interpolation)
     plt.figure()
-    plt.title("Approximation")
-    # plt.plot(ap.x, ap.v, 'b') # Looks wrong at last node!
-    # plt.plot(ap.x, ap.c, 'b')
-    plt.plot(ap.x, ap.c2, 'r')
+    plt.plot(x, c, 'b', label='Exact Solution')
+    plt.plot(x, interpolation(x), 'r', label='Linear interpolation')
+    plt.title("Linear approximation, " + str(approx.n_elements) + " elements")
     plt.grid(True)
+    plt.legend()
+    save_fig("Linear"+str(counter))
+
+    residual = interpolation(x)-c
+    plt.figure()
+    plt.plot(x, residual)
+    plt.title("Linear approximation residual, " + str(approx.n_elements) + " elements")
+    plt.grid(True)
+    save_fig("Linear"+str(counter)+"_residual")
+
+    counter = counter + 1
+
+Q1 = ApproxODE(A, k, Q, L, c_bar, q_bar, 3, 1, 2)
+Q1.solve_diffusion()
+Q2 = ApproxODE(A, k, Q, L, c_bar, q_bar, 9, 4, 2)
+Q2.solve_diffusion()
+Q3 = ApproxODE(A, k, Q, L, c_bar, q_bar, 199, 99, 2)
+Q3.solve_diffusion()
+Q4 = ApproxODE(A, k, Q, L, c_bar, q_bar, 1999, 999, 2)
+Q4.solve_diffusion()
+quadratic_list = [Q1, Q2, Q3, Q4]
+
+counter = 1
+for approx in quadratic_list:
+    interpolation = scipy.interpolate.interp1d(approx.x, approx.c2, kind="quadratic")
+    print(interpolation)
+    plt.figure()
+    plt.plot(x, c, 'b', label='Exact Solution')
+    plt.plot(x, interpolation(x), 'r', label='Quadratic interpolation')
+    plt.title("Quadratic approximation, " + str(approx.n_elements) + " elements")
+    plt.grid(True)
+    plt.legend()
+    save_fig("Quadratic"+str(counter))
+
+    residual = interpolation(x)-c
+    plt.figure()
+    plt.plot(x, residual)
+    plt.title("Quadratic approximation residual, " + str(approx.n_elements) + " elements")
+    plt.grid(True)
+    save_fig("Quadratic"+str(counter)+"_residual")
+
+    counter = counter + 1
+
+C1 = ApproxODE(A, k, Q, L, c_bar, q_bar, 4, 1, 3)
+C1.solve_diffusion()
+C2 = ApproxODE(A, k, Q, L, c_bar, q_bar, 13, 4, 3)
+C2.solve_diffusion()
+cubic_list = [C1, C2]
+
+counter = 1
+for approx in cubic_list:
+    interpolation = scipy.interpolate.interp1d(approx.x, approx.c2, kind="cubic")
+    print(interpolation)
+    plt.figure()
+    plt.plot(x, c, 'b', label='Exact Solution')
+    plt.plot(x, interpolation(x), 'r', label='Cubic interpolation')
+    plt.title("Cubic approximation, " + str(approx.n_elements) + " elements")
+    plt.grid(True)
+    plt.legend()
+    save_fig("Cubic"+str(counter))
+
+    residual = interpolation(x)-c
+    plt.figure()
+    plt.plot(x, residual)
+    plt.title("Cubic approximation residual, " + str(approx.n_elements) + " elements")
+    plt.grid(True)
+    save_fig("Cubic"+str(counter)+"_residual")
+
+    counter = counter + 1
+
 
 print("Runtime:", time.time()-start_timer)
 plt.show()
