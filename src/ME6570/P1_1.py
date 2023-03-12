@@ -330,6 +330,24 @@ for approx in cubic_list:
 
     counter = counter + 1
 
+# Create plots of all the lagrangian parent basis functions, orders 1-20
+s1 = np.linspace(-1, 1, 1000)
+for i in range(1, 21):
+    approx = ApproxODE(A, k, Q, L, c_bar, q_bar, i+1, 1, i)
+    Ns = approx.get_parent_functions()
+    plt.figure()
+    for func in Ns:
+        plt.plot(s1, func(s1))
+    plt.grid(True)
+    plt.title("Parent element, "+str(i)+" order approximation")
+    save_fig("Parent"+str(i))
+
+approx = ApproxODE(A, k, Q, L, c_bar, q_bar, 11, 1, 10)
+approx.solve_diffusion()
+
+plt.figure()
+plt.plot(approx.x, approx.c2)
+
 
 print("Runtime:", time.time()-start_timer)
 plt.show()
