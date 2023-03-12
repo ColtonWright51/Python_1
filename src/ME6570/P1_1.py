@@ -239,6 +239,7 @@ plt.title("Exact Solution")
 plt.plot(x, c, 'b')
 plt.grid(True)
 
+# def main():
 
 # A, k, Q, L, c_bar, q_bar, n_nodes, n_elements, order_of_approx
 L1 = ApproxODE(A, k, Q, L, c_bar, q_bar, 2, 1, 1)
@@ -352,3 +353,5 @@ plt.plot(approx.x, approx.c2)
 print("Runtime:", time.time()-start_timer)
 plt.show()
 
+# if __name__ == '__main__':
+#     main()
